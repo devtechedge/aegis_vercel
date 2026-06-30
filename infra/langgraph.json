@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "aegis": "./apps/api/packages/aegis_graph/supervisor.py:graph"
+  },
+  "env": ".env"
+}

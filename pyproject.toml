@@ -1,0 +1,30 @@
+[project]
+name = "aegis"
+version = "0.2.0"
+description = "AEGIS — Autonomous Enterprise Graph Intelligence System"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "langchain>=0.3",
+  "langgraph>=0.4",
+  "langsmith>=0.2",
+  "langserve>=0.3",
+  "pydantic>=2.7",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.black]
+line-length = 110
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

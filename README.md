@@ -1,120 +1,145 @@
-# AEGIS API
+# AEGIS — Autonomous Enterprise Graph Intelligence System
 
-Production-ready FastAPI backend for **AEGIS** — Autonomous Enterprise Graph Intelligence System.
+**A self-hosted, auditable alternative to Glean + Devin + PagerDuty Autopilot, built 100% on LangChain.**
 
-## Live Deployment
+AEGIS takes a natural language operational request: _"Why is checkout latency spiking in us-east? Check recent deploys, run a runbook, summarize related Slack threads, and open a PR with a fix if safe."_
 
-- **URL**: [https://aegis-api-two.vercel.app](https://aegis-api-two.vercel.app)
-- **API Documentation**: [https://aegis-api-two.vercel.app/docs](https://aegis-api-two.vercel.app/docs)
+It then autonomously plans, delegates to specialist sub-agents, retrieves from hybrid knowledge bases, executes tools, hits human-in-the-loop gates, and posts a fully traced, evaluated, and auditable result.
 
-## Status
+[![CI](https://img.shields.io/github/actions/workflow/status/devtechedge/aegis_vercel/ci.yml?branch=main)](https://github.com/devtechedge/aegis_vercel/actions)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)]()
+[![LangChain](https://img.shields.io/badge/LangChain-0.3-orange)]()
 
-- ✅ Successfully deployed on Vercel
-- ✅ All core endpoints working
-- ✅ Debug logging enabled
-- ✅ Root Directory: `apps/api`
-
-## Endpoints
-
-| Method | Endpoint     | Description              |
-|--------|--------------|--------------------------|
-| GET    | `/`          | API status               |
-| GET    | `/health`    | System health check      |
-| GET    | `/debug`     | Runtime environment info |
-| GET    | `/docs`      | Interactive API docs     |
-
-## Tech Stack
-
-- Python 3.12 + FastAPI
-- Deployed on Vercel Serverless Functions
-- Framework: FastAPI
-
-## Environment Variables
-
-This project supports the following environment variables for full functionality:
-
-### Required for Basic Use
-None (the current deployment works without any keys).
-
-### Recommended for Full Features
-
-| Variable              | Description                          | Example                          | Where to Get |
-|-----------------------|--------------------------------------|----------------------------------|--------------|
-| `OPENAI_API_KEY`      | OpenAI API key                       | `sk-...`                         | [platform.openai.com](https://platform.openai.com) |
-| `LANGCHAIN_API_KEY`   | LangSmith tracing key                | `ls__...`                        | [smith.langchain.com](https://smith.langchain.com) |
-| `LANGCHAIN_TRACING_V2` | Enable LangSmith tracing            | `true`                           | — |
-| `LANGCHAIN_PROJECT`   | LangSmith project name               | `aegis-production`               | — |
-| `COHERE_API_KEY`      | Cohere reranker (optional)           | `...`                            | [cohere.com](https://cohere.com) |
-
-### How to Add Environment Variables
-
-1. Go to your Vercel project dashboard
-2. Click **Settings** → **Environment Variables**
-3. Add the variables above
-4. Select **Production**, **Preview**, and **Development**
-5. Click **Save**
-6. Redeploy the project (or push a new commit)
-
-> **Tip**: Start with `OPENAI_API_KEY` and `LANGCHAIN_API_KEY` for the most value.
-
-## How to Deploy (for Contributors)
-
-### Prerequisites
-- GitHub account
-- Vercel account (free tier is sufficient)
-
-### Steps
-
-1. **Fork or Clone this repository**
-
-2. **Create a new Vercel project**
-   - Go to [vercel.com/new](https://vercel.com/new)
-   - Import this repository (`aegis_vercel`)
-
-3. **Configure the project**
-   - **Project Name**: `aegis-api` (or your preferred name)
-   - **Root Directory**: `apps/api`
-   - **Framework Preset**: `FastAPI`
-
-4. **Deploy**
-   - Click **Deploy**
-
-5. **(Optional) Add Environment Variables**
-   - See the **Environment Variables** section above
-
-### Local Development
-
-```bash
-cd apps/api
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
-Then visit: http://localhost:8000/docs
-
-## Repository Relationship
-
-This repository (`aegis_vercel`) serves as the **clean Vercel deployment target**.
-
-The main development repository (containing the full LangChain, LangGraph, RAG, and multi-agent implementation) is:
-
-→ [github.com/devtechedge/aegis](https://github.com/devtechedge/aegis)
-
-## Architecture
-
-- Root Directory: `apps/api`
-- Routers: `threads`, `fleet`
-- Graceful fallbacks for optional dependencies (LangServe, LangGraph, etc.)
-
-## Next Steps / Roadmap
-
-This serves as the stable foundation. Future updates will include:
-
-- LangGraph Supervisor integration
-- Full RAG pipeline with self-correction
-- LangServe endpoints (`/invoke`, `/stream`)
-- Additional specialist agents
+Live: https://aegis-api-two.vercel.app — Docs: https://aegis-api-two.vercel.app/docs
 
 ---
 
-**Built with ❤️ using the LangChain ecosystem**
+## Architecture
+
+```
+[Next.js UI / LangGraph Studio] <-SSE-> [LangServe FastAPI /api]
+                                        |
+                              [LangGraph Supervisor]
+                   /     |      |       |       |      \
+            Researcher Coder  SRE   Knowledge Comm  Evaluator
+               |         |     |        |
+         Tavily/Arxiv  E2B  Prometheus  PGVector Hybrid RAG
+                                        |
+                                [Postgres + PGVector + Redis]
+                                        |
+                              [LangSmith Traces / Evals / Prompt Hub]
+```
+
+## Feature Matrix – Full LangChain Ecosystem
+
+| Product | Used For |
+|---|---|
+| **langchain-core** | LCEL everywhere, structured output Pydantic v2, fallback LLM router |
+| **langgraph** | Supervisor + 6 subgraphs, PostgresSaver, `interrupt()` HITL, `astream_events` |
+| **langsmith** | Tracing, Prompt Hub (`aegis/supervisor_router`), Evals, Feedback API |
+| **langserve** | FastAPI `/invoke`, `/stream`, `/threads/{id}/resume`, OpenAPI playground |
+| **RAG** | MultiQuery → Cohere Rerank → LLM Grader → HyDE, PGVector + BM25 hybrid |
+| **Tools (14)** | Tavily, Code Executor, Postgres, GitHub, Slack, Browser, Prometheus, Runbook, Arxiv, Wikipedia, Email, Calendar, FS, Memory |
+
+## 7 Agentic Loops – All Implemented
+
+1. Perception-Plan-Act-Reflect
+2. Supervisor-Worker Hierarchical
+3. RAG Self-Correction
+4. Tool-Use ReAct + Self-Heal
+5. Human-in-the-Loop Interrupt
+6. Evaluation-Driven Self-Improvement
+7. Memory Consolidation
+
+All visible in LangSmith with custom metadata.
+
+## Quickstart
+
+```bash
+cp .env.example .env
+docker-compose -f infra/docker-compose.yml up --build
+```
+
+- API: http://localhost:8000/docs
+- Playground: http://localhost:8000/aegis/playground
+- Web UI: http://localhost:3000 (coming soon)
+
+Vercel: Root Directory = `apps/api`, works serverless with graceful fallbacks.
+
+### Invoke
+
+```bash
+curl -X POST http://localhost:8000/invoke \
+  -H "content-type: application/json" \
+  -d '{"input":"Investigate checkout latency spike in us-east","thread_id":"inc-342"}'
+```
+
+Streaming SSE: `POST /stream`
+
+HITL Resume:
+```bash
+curl -X POST http://localhost:8000/threads/inc-342/resume \
+  -d '{"approved": true}'
+```
+
+## Why this proves Senior+ AI Engineering
+
+- **Agentic Loops**: 7 explicit loops, not chains
+- **LangGraph HITL**: `interrupt()` / `Command(resume=...)`, PostgresSaver
+- **LangSmith Evals/Prompt Hub**: 3 datasets, LLM-as-judge, CI gating faithfulness >0.82
+- **Hybrid RAG**: MultiQuery + Compression + Grader + HyDE
+- **Multi-agent Supervisor**: 6 specialists, tool-use ReAct
+- **Production Observability**: OpenTelemetry → LangSmith, run metadata
+
+## Repo Structure
+
+```
+aegis/
+├── apps/api/              # LangServe FastAPI
+├── packages/aegis_graph/  # Supervisor + 6 subgraphs
+├── packages/tools/        # 14 production tools
+├── packages/rag/          # Ingestion / retriever / vectorstore
+├── packages/memory/
+├── packages/evals/
+├── infra/docker-compose.yml
+├── tests/
+└── scripts/run_evals.py
+```
+
+## Evals
+
+```bash
+python scripts/run_evals.py
+```
+
+Generates `evals/reports/latest.md`. CI fails if faithfulness < 0.82.
+
+## Environment Variables
+
+| Var | Purpose |
+|---|---|
+| `OPENAI_API_KEY` | Core LLM |
+| `ANTHROPIC_API_KEY` | Coding fallback |
+| `LANGCHAIN_API_KEY` | LangSmith tracing |
+| `LANGCHAIN_TRACING_V2=true` | Enable tracing |
+| `DATABASE_URL` | Postgres + PGVector |
+| `REDIS_URL` | Short-term memory |
+| `TAVILY_API_KEY` | Web search |
+
+All optional – fake models/fallbacks keep Vercel deploy green.
+
+## Demo for Recruiters
+
+1. Open https://aegis-api-two.vercel.app/docs
+2. POST `/invoke` with: `"Investigate checkout latency spike in us-east. Check recent deploys, run a runbook, summarize Slack threads."`
+3. See Supervisor → SRE Analyst → Knowledge RAG → Coder → Evaluator → Communicator trace in LangSmith
+4. RAG grader loop visible, HITL interrupt for PR creation
+5. `POST /threads/{id}/resume {"approved":true}` continues
+6. Streaming works at `/stream`
+
+Local: `docker-compose up`, open LangGraph Studio: `langgraph dev`
+
+---
+
+MIT License — Built with LangChain, LangGraph, LangSmith

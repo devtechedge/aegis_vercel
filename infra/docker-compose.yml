@@ -1,0 +1,26 @@
+version: "3.9"
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: aegis
+      POSTGRES_PASSWORD: aegis
+      POSTGRES_DB: aegis
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+  api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    ports: ["8000:8000"]
+    env_file: ["../.env"]
+    environment:
+      DATABASE_URL: postgresql://aegis:aegis@postgres:5432/aegis
+      REDIS_URL: redis://redis:6379/0
+    depends_on: [postgres, redis]
+    command: uvicorn apps.api.main:app --host 0.0.0.0 --port 8000 --reload
+volumes:
+  pgdata:

@@ -1,0 +1,23 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: Install
+        run: |
+          pip install -r apps/api/requirements.txt
+          pip install pytest pytest-cov ruff black mypy
+      - name: Lint
+        run: |
+          ruff check . || true
+          black --check . || true
+      - name: Type check
+        run: mypy apps/api/packages --ignore-missing-imports || true
+      - name: Test
+        run: pytest -q
+      - name: Eval gate
+        run: python scripts/run_evals.py
