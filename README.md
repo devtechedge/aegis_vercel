@@ -143,3 +143,16 @@ Local: `docker-compose up`, open LangGraph Studio: `langgraph dev`
 ---
 
 MIT License — Built with LangChain, LangGraph, LangSmith
+
+## New in v0.2.3 — Live Graph Trace Panel
+
+The `/ui` is no longer just a chat console. It now renders a **real-time LangGraph visualizer** side-by-side:
+
+- Mermaid diagram that highlights nodes as they execute (Supervisor → SRE → Knowledge → Coder → Evaluator etc.)
+- Live trace log showing every agent transition + tool calls
+- Confidence, artifacts, critic feedback, and current step displayed live
+- One-click link to the full LangSmith trace for the exact run
+- Works with both real runs and mock mode
+
+Run any task at https://aegis-api-two.vercel.app/ui and watch the graph light up.
+
