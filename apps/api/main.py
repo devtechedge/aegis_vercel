@@ -67,6 +67,7 @@ print("\n=== AEGIS API INITIALIZATION COMPLETE ===\n")
 
 @app.get("/")
 async def root():
+    # Redirect browsers to /ui, keep JSON for API clients
     from fastapi.responses import RedirectResponse
     return {"status": "online", "message": "AEGIS API is running", "docs": "/docs", "ui": "/ui", "version": "0.2.3", "graph_loaded": graph is not None, "graph_error": graph_load_error}
 
@@ -125,8 +126,8 @@ async def stream(req: InvokeRequest):
         async def mock_gen():
             msg = f"AEGIS mock stream – graph not loaded. Error: {graph_load_error or 'missing deps'}. Set GOOGLE_API_KEY + LANGCHAIN_API_KEY in Vercel, Install Command = pip install -r requirements-vercel.txt, redeploy."
             for w in msg.split(" "):
-                yield f"data: {json.dumps({'token': w+' '})}\n\n"
-            yield "data: [DONE]\n\n"
+                yield f"data: {json.dumps({'token': w+' '})}\\n\\n"
+            yield "data: [DONE]\\n\\n"
         return StreamingResponse(mock_gen(), media_type="text/event-stream")
 
     from langchain_core.messages import HumanMessage
@@ -140,10 +141,10 @@ async def stream(req: InvokeRequest):
                     chunk = event["data"].get("chunk")
                     token = getattr(chunk, "content", "") if chunk else ""
                     if token:
-                        yield f"data: {json.dumps({'token': token})}\n\n"
+                        yield f"data: {json.dumps({'token': token})}\\n\\n"
         except Exception as e:
-            yield f"data: {json.dumps({'error': str(e)})}\n\n"
-        yield "data: [DONE]\n\n"
+            yield f"data: {json.dumps({'error': str(e)})}\\n\\n"
+        yield "data: [DONE]\\n\\n"
 
     return StreamingResponse(event_gen(), media_type="text/event-stream")
 
@@ -230,7 +231,6 @@ async function runStream(){
       const {done, value} = await reader.read();
       if(done) break;
       buf += dec.decode(value, {stream:true});
-      // FIXED: Use regex split to avoid escape issues
       const parts = buf.split(/\n\n/);
       buf = parts.pop();
       for(const p of parts){
