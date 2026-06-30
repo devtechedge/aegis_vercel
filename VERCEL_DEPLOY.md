@@ -1,4 +1,4 @@
-# Vercel Deploy Notes – AEGIS v0.2.0
+# Vercel Deploy Notes – AEGIS v0.2.1
 
 Live: https://aegis-api-two.vercel.app
 
