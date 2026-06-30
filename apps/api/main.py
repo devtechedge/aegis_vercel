@@ -15,7 +15,7 @@ print("=== AEGIS API STARTING ===")
 print(f"Python version: {sys.version}")
 print(f"Working directory: {os.getcwd()}")
 
-app = FastAPI(title="AEGIS API", version="0.2.1", description="Autonomous Enterprise Graph Intelligence System")
+app = FastAPI(title="AEGIS API", version="0.2.2", description="Autonomous Enterprise Graph Intelligence System")
 
 app.add_middleware(
     CORSMiddleware,
@@ -70,14 +70,14 @@ async def root():
     # Redirect browsers to /ui, keep JSON for API clients
     from fastapi.responses import RedirectResponse
     from fastapi import Request
-    return {"status": "online", "message": "AEGIS API is running", "docs": "/docs", "ui": "/ui", "version": "0.2.1", "graph_loaded": graph is not None, "graph_error": graph_load_error}
+    return {"status": "online", "message": "AEGIS API is running", "docs": "/docs", "ui": "/ui", "version": "0.2.2", "graph_loaded": graph is not None, "graph_error": graph_load_error}
 
 @app.get("/health")
 def health():
     return {
         "status": "ok",
         "products": ["Engine","Observability","Evaluation","Deployment","Sandboxes","Fleet","deepagents","langgraph","langchain"],
-        "version": "0.2.1",
+        "version": "0.2.2",
         "graph": bool(graph),
         "graph_error": graph_load_error,
         "llm_keys": {
@@ -162,7 +162,7 @@ small{color:var(--mut)}
 #status{margin-left:8px;color:var(--mut)}
 </style></head><body>
 <div class="wrap">
-<h1>AEGIS v0.2.1</h1>
+<h1>AEGIS v0.2.2</h1>
 <div class="sub">Autonomous Enterprise Graph Intelligence System — LangGraph Supervisor + 6 specialists • <a href="/docs" target="_blank">API docs</a> • <a href="https://github.com/devtechedge/aegis_vercel" target="_blank">GitHub</a></div>
 
 <div class="card">
