@@ -234,14 +234,41 @@ def _real_event_gen(task: str, thread_id: str):
     from langchain_core.messages import HumanMessage
     config = {"configurable": {"thread_id": thread_id}}
 
+    def _normalize_chunk(chunk):
+        """Handle different LangGraph versions returning different astream shapes.
+
+        LangGraph has changed astream(stream_mode="updates") return format across versions:
+          - Some yield (mode_str, {node_name: update_dict})  — newest
+          - Some yield (node_name, update_dict)               — older
+          - Some yield {node_name: update_dict}               — no tuple
+
+        This normalises all three into {node_name: update_dict}.
+        """
+        # Case 1: bare dict — already {node_name: update}
+        if isinstance(chunk, dict):
+            return chunk
+        # Case 2 & 3: tuple of 2
+        if isinstance(chunk, tuple) and len(chunk) == 2:
+            first, second = chunk
+            # If second is a dict whose keys include agent names → (mode, {node: update})
+            if isinstance(second, dict) and any(k in DESCRIPTORS for k in second):
+                return second
+            # Otherwise → (node_name, update_dict) — old format
+            return {first: second} if isinstance(second, dict) else {str(first): second}
+        # Fallback: treat as single dict
+        return chunk if isinstance(chunk, dict) else {"unknown": chunk}
+
     async def gen():
         try:
-            async for mode, data in graph.astream(
+            async for chunk in graph.astream(
                 {"task": task, "messages": [HumanMessage(content=task)]},
                 config=config,
                 stream_mode="updates",
             ):
+                data = _normalize_chunk(chunk)
                 for node_name, update in data.items():
+                    if not isinstance(update, dict):
+                        update = {"messages": update}
                     desc = DESCRIPTORS.get(node_name, f"{node_name} executing")
                     yield f"data: {json.dumps({'step': node_name, 'description': desc})}\n\n"
                     text = _extract_text(node_name, update)
