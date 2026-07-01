@@ -2,47 +2,68 @@
 
 **A self-hosted, auditable alternative to Glean + Devin + PagerDuty Autopilot, built 100% on LangChain.**
 
-AEGIS takes a natural language operational request: _"Why is checkout latency spiking in us-east? Check recent deploys, run a runbook, summarize related Slack threads, and open a PR with a fix if safe."_
+> \*\*Try it live:\*\* \[aegis-api-two.vercel.app/ui](https://aegis-api-two.vercel.app/ui) — toggle between Demo and Live inference, watch the LangGraph supervisor route specialists in real time, and approve/reject HITL gates.
 
-It then autonomously plans, delegates to specialist sub-agents, retrieves from hybrid knowledge bases, executes tools, hits human-in-the-loop gates, and posts a fully traced, evaluated, and auditable result.
+AEGIS takes a natural language operational request — *"Why is checkout latency spiking in us-east?"* — and autonomously plans, delegates to specialist sub-agents, retrieves from hybrid knowledge bases, executes tools, hits human-in-the-loop gates, and posts a fully traced, evaluated, and auditable result.
 
-[![CI](https://img.shields.io/github/actions/workflow/status/devtechedge/aegis_vercel/ci.yml?branch=main)](https://github.com/devtechedge/aegis_vercel/actions)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)]()
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)]()
-[![LangChain](https://img.shields.io/badge/LangChain-0.3-orange)]()
+[!\[CI](https://img.shields.io/github/actions/workflow/status/devtechedge/aegis\_vercel/ci.yml?branch=main)](https://github.com/devtechedge/aegis_vercel/actions)
+\[!\[Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)]()
+\[!\[License: MIT](https://img.shields.io/badge/License-MIT-green.svg)]()
+\[!\[LangChain](https://img.shields.io/badge/LangChain-0.3-orange)]()
 
-Live: https://aegis-api-two.vercel.app — Docs: https://aegis-api-two.vercel.app/docs
+\---
 
----
+## Live Demo
+
+Open [aegis-api-two.vercel.app/ui](https://aegis-api-two.vercel.app/ui) and click **Run AEGIS**.
+
+**What you'll see:**
+
+* **Real-time Mermaid graph** animating the execution path: Supervisor → SRE Analyst → Knowledge → Coder → \[HITL] → Evaluator → Communicator
+* **Streaming agent output** — each specialist's findings appear as they execute, with confidence scores and artifact counts
+* **Human-in-the-Loop gate** — the Coder produces a patch, pauses for your approval, then the Evaluator and Communicator complete the flow
+* **Demo / Live toggle** — Demo mode runs an instant simulation; Live mode connects to the real LangGraph with your API keys
+* **Live info panel** — step count, confidence %, artifact count, and elapsed time update in real time
+* **LangSmith traces** — one-click link to the full trace for every run
+
+### UI Screenshots
+
+The `/ui` endpoint serves a single-page dashboard with:
+
+* Left panel: task input, Run/Stop controls, scrolling agent output, info chips
+* Right panel: animated Mermaid graph, execution path log, LangSmith link
+* HITL approval panel slides in when the Coder requests human review
+
+\---
 
 ## Architecture
 
 ```
-[Next.js UI / LangGraph Studio] <-SSE-> [LangServe FastAPI /api]
+\[Next.js UI / LangGraph Studio] <-SSE-> \[LangServe FastAPI /api]
                                         |
-                              [LangGraph Supervisor]
-                   /     |      |       |       |      \
+                              \[LangGraph Supervisor]
+                   /     |      |       |       |      \\
             Researcher Coder  SRE   Knowledge Comm  Evaluator
                |         |     |        |
          Tavily/Arxiv  E2B  Prometheus  PGVector Hybrid RAG
                                         |
-                                [Postgres + PGVector + Redis]
+                                \[Postgres + PGVector + Redis]
                                         |
-                              [LangSmith Traces / Evals / Prompt Hub]
+                              \[LangSmith Traces / Evals / Prompt Hub]
 ```
 
-## Feature Matrix – Full LangChain Ecosystem
+## Feature Matrix — Full LangChain Ecosystem
 
-| Product | Used For |
-|---|---|
-| **langchain-core** | LCEL everywhere, structured output Pydantic v2, fallback LLM router |
-| **langgraph** | Supervisor + 6 subgraphs, PostgresSaver, `interrupt()` HITL, `astream_events` |
-| **langsmith** | Tracing, Prompt Hub (`aegis/supervisor_router`), Evals, Feedback API |
-| **langserve** | FastAPI `/invoke`, `/stream`, `/threads/{id}/resume`, OpenAPI playground |
-| **RAG** | MultiQuery → Cohere Rerank → LLM Grader → HyDE, PGVector + BM25 hybrid |
-| **Tools (14)** | Tavily, Code Executor, Postgres, GitHub, Slack, Browser, Prometheus, Runbook, Arxiv, Wikipedia, Email, Calendar, FS, Memory |
+|Product|Used For|
+|-|-|
+|**langchain-core**|LCEL everywhere, structured output Pydantic v2, fallback LLM router|
+|**langgraph**|Supervisor + 6 subgraphs, PostgresSaver, `interrupt()` HITL, `astream\_events`|
+|**langsmith**|Tracing, Prompt Hub (`aegis/supervisor\_router`), Evals, Feedback API|
+|**langserve**|FastAPI `/invoke`, `/stream`, `/threads/{id}/resume`, OpenAPI playground|
+|**RAG**|MultiQuery → Cohere Rerank → LLM Grader → HyDE, PGVector + BM25 hybrid|
+|**Tools (14)**|Tavily, Code Executor, Postgres, GitHub, Slack, Browser, Prometheus, Runbook, Arxiv, Wikipedia, Email, Calendar, FS, Memory|
 
-## 7 Agentic Loops – All Implemented
+## 7 Agentic Loops — All Implemented
 
 1. Perception-Plan-Act-Reflect
 2. Supervisor-Worker Hierarchical
@@ -54,105 +75,94 @@ Live: https://aegis-api-two.vercel.app — Docs: https://aegis-api-two.vercel.ap
 
 All visible in LangSmith with custom metadata.
 
+\---
+
 ## Quickstart
+
+### Vercel (recommended — zero config)
+
+1. Fork this repo
+2. Import into [Vercel](https://vercel.com)
+3. Set root directory to `apps/api`
+4. Add `GOOGLE\_API\_KEY` (or `OPENAI\_API\_KEY`) as an environment variable
+5. Deploy — visit `/ui` for the live dashboard, `/docs` for the API playground
+
+Without API keys the UI gracefully falls back to **Demo mode** (instant simulation).
+
+### Docker (local / self-hosted)
 
 ```bash
 cp .env.example .env
 docker-compose -f infra/docker-compose.yml up --build
 ```
 
-- API: http://localhost:8000/docs
-- Playground: http://localhost:8000/aegis/playground
-- Web UI: http://localhost:3000 (coming soon)
+* Dashboard: http://localhost:8000/ui
+* API playground: http://localhost:8000/docs
+* LangGraph Studio: `langgraph dev`
 
-Vercel: Root Directory = `apps/api`, works serverless with graceful fallbacks.
+### API Endpoints
 
-### Invoke
+|Endpoint|Method|Purpose|
+|-|-|-|
+|`/ui`|GET|Live dashboard (SSE, Mermaid, HITL)|
+|`/stream`|POST|Streaming inference (SSE)|
+|`/invoke`|POST|Single-shot inference (JSON)|
+|`/threads/{id}/resume`|POST|Resume after HITL (JSON)|
+|`/threads/{id}/resume/stream`|POST|Resume after HITL (SSE)|
+|`/health`|GET|Graph status, key availability|
+|`/docs`|GET|OpenAPI / Swagger playground|
 
-```bash
-curl -X POST http://localhost:8000/invoke \
-  -H "content-type: application/json" \
-  -d '{"input":"Investigate checkout latency spike in us-east","thread_id":"inc-342"}'
-```
+\---
 
-Streaming SSE: `POST /stream`
+## Why This Proves Senior+ AI Engineering
 
-HITL Resume:
-```bash
-curl -X POST http://localhost:8000/threads/inc-342/resume \
-  -d '{"approved": true}'
-```
-
-## Why this proves Senior+ AI Engineering
-
-- **Agentic Loops**: 7 explicit loops, not chains
-- **LangGraph HITL**: `interrupt()` / `Command(resume=...)`, PostgresSaver
-- **LangSmith Evals/Prompt Hub**: 3 datasets, LLM-as-judge, CI gating faithfulness >0.82
-- **Hybrid RAG**: MultiQuery + Compression + Grader + HyDE
-- **Multi-agent Supervisor**: 6 specialists, tool-use ReAct
-- **Production Observability**: OpenTelemetry → LangSmith, run metadata
+* **Agentic Loops**: 7 explicit loops, not chains
+* **LangGraph HITL**: `interrupt()` / `Command(resume=...)`, PostgresSaver
+* **LangSmith Evals/Prompt Hub**: 3 datasets, LLM-as-judge, CI gating faithfulness > 0.82
+* **Hybrid RAG**: MultiQuery + Compression + Grader + HyDE
+* **Multi-agent Supervisor**: 6 specialists, tool-use ReAct
+* **Production Observability**: OpenTelemetry → LangSmith, run metadata
+* **Vercel Serverless**: graceful degradation, SSE streaming, version-agnostic chunk handling
 
 ## Repo Structure
 
 ```
 aegis/
-├── apps/api/              # LangServe FastAPI
-├── packages/aegis_graph/  # Supervisor + 6 subgraphs
+├── apps/api/              # LangServe FastAPI + live UI
+├── packages/aegis\_graph/  # Supervisor + 6 subgraphs
 ├── packages/tools/        # 14 production tools
 ├── packages/rag/          # Ingestion / retriever / vectorstore
 ├── packages/memory/
 ├── packages/evals/
 ├── infra/docker-compose.yml
 ├── tests/
-└── scripts/run_evals.py
+└── scripts/run\_evals.py
 ```
 
 ## Evals
 
 ```bash
-python scripts/run_evals.py
+python scripts/run\_evals.py
 ```
 
 Generates `evals/reports/latest.md`. CI fails if faithfulness < 0.82.
 
 ## Environment Variables
 
-| Var | Purpose |
-|---|---|
-| `OPENAI_API_KEY` | Core LLM |
-| `ANTHROPIC_API_KEY` | Coding fallback |
-| `LANGCHAIN_API_KEY` | LangSmith tracing |
-| `LANGCHAIN_TRACING_V2=true` | Enable tracing |
-| `DATABASE_URL` | Postgres + PGVector |
-| `REDIS_URL` | Short-term memory |
-| `TAVILY_API_KEY` | Web search |
+|Var|Purpose|
+|-|-|
+|`GOOGLE\_API\_KEY`|Gemini LLM (primary)|
+|`OPENAI\_API\_KEY`|OpenAI fallback|
+|`ANTHROPIC\_API\_KEY`|Coding fallback|
+|`LANGCHAIN\_API\_KEY`|LangSmith tracing|
+|`LANGCHAIN\_TRACING\_V2=true`|Enable tracing|
+|`DATABASE\_URL`|Postgres + PGVector|
+|`REDIS\_URL`|Short-term memory|
+|`TAVILY\_API\_KEY`|Web search|
 
-All optional – fake models/fallbacks keep Vercel deploy green.
+All optional — fake models/fallbacks keep Vercel deploy green even without keys.
 
-## Demo for Recruiters
-
-1. Open https://aegis-api-two.vercel.app/docs
-2. POST `/invoke` with: `"Investigate checkout latency spike in us-east. Check recent deploys, run a runbook, summarize Slack threads."`
-3. See Supervisor → SRE Analyst → Knowledge RAG → Coder → Evaluator → Communicator trace in LangSmith
-4. RAG grader loop visible, HITL interrupt for PR creation
-5. `POST /threads/{id}/resume {"approved":true}` continues
-6. Streaming works at `/stream`
-
-Local: `docker-compose up`, open LangGraph Studio: `langgraph dev`
-
----
+\---
 
 MIT License — Built with LangChain, LangGraph, LangSmith
-
-## New in v0.2.3 — Live Graph Trace Panel
-
-The `/ui` is no longer just a chat console. It now renders a **real-time LangGraph visualizer** side-by-side:
-
-- Mermaid diagram that highlights nodes as they execute (Supervisor → SRE → Knowledge → Coder → Evaluator etc.)
-- Live trace log showing every agent transition + tool calls
-- Confidence, artifacts, critic feedback, and current step displayed live
-- One-click link to the full LangSmith trace for the exact run
-- Works with both real runs and mock mode
-
-Run any task at https://aegis-api-two.vercel.app/ui and watch the graph light up.
 
