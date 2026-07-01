@@ -104,7 +104,7 @@ async def stream(req: InvokeRequest):
 
 @app.get("/ui", response_class=HTMLResponse)
 async def ui():
-    return """<!doctype html>
+    return r"""<!doctype html>
 <html>
 <head>
 <meta charset="utf-8">
