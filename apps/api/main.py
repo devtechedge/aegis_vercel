@@ -53,6 +53,7 @@ class ResumeRequest(BaseModel):
     approved: bool = True
     comment: str | None = None
     payload: Any | None = None
+    completed: list[str] = []  # nodes already shown (sent by frontend)
 
 
 # ── Endpoints ──────────────────────────────────────────────────────────────
@@ -153,27 +154,39 @@ async def resume_thread_stream(thread_id: str, req: ResumeRequest):
             yield "data: [DONE]\n\n"
             return
 
+        done = set(req.completed)  # nodes already streamed to the UI
+        need_evaluator = "evaluator" not in done
+        need_comms = "communicator" not in done
+
+        if not need_evaluator and not need_comms:
+            # HITL was on the last node (e.g. communicator/slack_post) —
+            # just confirm approval and show final metrics.
+            await asyncio.sleep(0.3)
+            yield f"data: {json.dumps({'token': '\n[RESUMED] Human approval confirmed. Action executed.\n'})}\n\n"
+            yield f"data: {json.dumps({'confidence': 91, 'artifacts': ['rca.md', 'patch.diff', 'incident_report.md', 'postmortem.md']})}\n\n"
+            yield "data: [DONE]\n\n"
+            return
+
         await asyncio.sleep(0.5)
 
-        # Evaluator
-        yield f"data: {json.dumps({'step': 'evaluator', 'description': DESCRIPTORS['evaluator']})}\n\n"
-        await asyncio.sleep(0.8)
-        yield f"data: {json.dumps({'token': '[EVALUATOR] Evaluator scoring output quality and verifying against SLOs\n\n'
-            '  Quality Score: 91/100\n'
-            '  SLO Compliance: PASS - all latency, error-rate and availability checks within thresholds\n'
-            '  Patch Validation: Code changes verified against staging environment\n'
-            '  Confidence: 91%\n\n'})}\n\n"
+        if need_evaluator:
+            yield f"data: {json.dumps({'step': 'evaluator', 'description': DESCRIPTORS['evaluator']})}\n\n"
+            await asyncio.sleep(0.8)
+            yield f"data: {json.dumps({'token': '[EVALUATOR] Evaluator scoring output quality and verifying against SLOs\n\n'
+                '  Quality Score: 91/100\n'
+                '  SLO Compliance: PASS - all latency, error-rate and availability checks within thresholds\n'
+                '  Patch Validation: Code changes verified against staging environment\n'
+                '  Confidence: 91%\n\n'})}\n\n"
+            await asyncio.sleep(0.4)
 
-        await asyncio.sleep(0.4)
-
-        # Communicator
-        yield f"data: {json.dumps({'step': 'communicator', 'description': DESCRIPTORS['communicator']})}\n\n"
-        await asyncio.sleep(0.8)
-        yield f"data: {json.dumps({'token': '[COMMUNICATOR] Communicator composing final summary and incident report\n\n'
-            '  Final incident report generated and distributed to stakeholders.\n'
-            '  Slack notification sent to #incidents with RCA summary.\n'
-            '  Runbook updated with new checkout_latency findings.\n'
-            '  Post-mortem scheduled for tomorrow 10:00 UTC.\n\n'})}\n\n"
+        if need_comms:
+            yield f"data: {json.dumps({'step': 'communicator', 'description': DESCRIPTORS['communicator']})}\n\n"
+            await asyncio.sleep(0.8)
+            yield f"data: {json.dumps({'token': '[COMMUNICATOR] Communicator composing final summary and incident report\n\n'
+                '  Final incident report generated and distributed to stakeholders.\n'
+                '  Slack notification sent to #incidents with RCA summary.\n'
+                '  Runbook updated with new checkout_latency findings.\n'
+                '  Post-mortem scheduled for tomorrow 10:00 UTC.\n\n'})}\n\n"
 
         # Final metrics
         yield f"data: {json.dumps({'confidence': 91, 'artifacts': ['rca.md', 'patch.diff', 'incident_report.md', 'postmortem.md']})}\n\n"
@@ -1005,7 +1018,7 @@ async function approveHITL(approved) {
     const res = await fetch('/threads/' + encodeURIComponent(lastThread) + '/resume/stream', {
       method: 'POST',
       headers: {'content-type': 'application/json'},
-      body: JSON.stringify({approved: true, comment: 'approved via UI'})
+      body: JSON.stringify({approved: true, completed: currentPath, comment: 'approved via UI'})
     });
     const reader = res.body.getReader();
     const dec = new TextDecoder();
