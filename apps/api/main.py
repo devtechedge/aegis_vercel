@@ -10,7 +10,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
-VERSION = "0.3.2"
+VERSION = "0.4.0"
 
 app = FastAPI(title="AEGIS API", version=VERSION, description="Autonomous Enterprise Graph Intelligence System")
 
@@ -31,7 +31,6 @@ try:
 except Exception as e:
     graph_load_error = str(e)
 
-# Graceful router import
 try:
     from routers import threads, fleet
     app.include_router(threads.router)
@@ -115,8 +114,6 @@ async def invoke(req: InvokeRequest):
         return {"error": err, "thread_id": req.thread_id}
 
 
-# ── Inline HITL resume (works regardless of router imports) ────────────────
-
 @app.post("/threads/{thread_id}/resume")
 async def resume_thread(thread_id: str, req: ResumeRequest):
     if not graph:
@@ -153,14 +150,11 @@ DESCRIPTORS = {
 
 
 def _extract_text(node: str, update: dict) -> str:
-    """Pull human-readable text from a node state update."""
     parts = []
-    # Messages
     for m in update.get("messages", []):
         content = getattr(m, "content", "") if hasattr(m, "content") else str(m)
         if not content:
             continue
-        # Skip raw supervisor routing JSON
         if node == "supervisor" and '"next"' in str(content):
             try:
                 parsed = json.loads(content) if isinstance(content, str) else content
@@ -173,29 +167,24 @@ def _extract_text(node: str, update: dict) -> str:
                 pass
         parts.append(content if len(str(content)) < 800 else str(content)[:800] + "...")
 
-    # Routing decision (when returned as state key)
     next_agent = update.get("next_agent")
     if next_agent:
         parts.append(f"  Route -> {next_agent}" if next_agent != "finish" else "  Decision: FINISH")
 
-    # Plan
     plan = update.get("plan")
     if plan and isinstance(plan, list):
         parts.append(f"  Plan: {' -> '.join(str(p) for p in plan)}")
 
-    # Confidence
     conf = update.get("confidence")
     if conf is not None and conf > 0:
         parts.append(f"  Confidence: {conf:.0%}")
 
-    # Artifacts
     arts = update.get("artifacts", {})
     if arts and isinstance(arts, dict):
         keys = list(arts.keys())
         if keys:
             parts.append(f"  Artifacts: {', '.join(keys)}")
 
-    # HITL flag
     if update.get("needs_human_approval"):
         payload = update.get("approval_payload") or {}
         action = payload.get("type", "action") if isinstance(payload, dict) else "action"
@@ -206,7 +195,6 @@ def _extract_text(node: str, update: dict) -> str:
 
 
 def _demo_event_gen():
-    """Demo simulation — matches the recruiter-friendly output from v0.2.4."""
     step_events = [
         {"step": "supervisor", "description": "Supervisor analyzing task and routing to SRE Analyst"},
         {"step": "sre_analyst", "description": "SRE Analyst reviewing checkout metrics, logs and error rates"},
@@ -217,11 +205,6 @@ def _demo_event_gen():
         {"step": "hitl", "description": "HITL interrupt triggered - awaiting human approval for code execution"},
         {"step": "evaluator", "description": "Evaluator validating proposed fix against SLOs and safety"},
         {"step": "communicator", "description": "Communicator preparing final summary, Slack notification and incident report"},
-    ]
-    # Metrics emitted at end for demo polish
-    metric_events = [
-        {"confidence": 96},
-        {"artifacts": ["diagnostic_script.py", "patch.diff", "incident_report.md"]},
     ]
     nice_text = (
         "AEGIS has completed the investigation. "
@@ -236,7 +219,6 @@ def _demo_event_gen():
     word_idx = 0
     for step_ev in step_events:
         yield f"data: {json.dumps(step_ev)}\n\n"
-        # Emit a few words per step for readable streaming
         end_word = min(word_idx + 6, len(words))
         for w in range(word_idx, end_word):
             token = words[w] + (" " if w < len(words) - 1 else "")
@@ -245,13 +227,10 @@ def _demo_event_gen():
     for w in range(word_idx, len(words)):
         token = words[w] + (" " if w < len(words) - 1 else "")
         yield f"data: {json.dumps({'token': token})}\n\n"
-    # Emit final metrics
-    for me in metric_events:
-        yield f"data: {json.dumps(me)}\n\n"
+    yield f"data: {json.dumps({'confidence': 96, 'artifacts': ['diagnostic_script.py', 'patch.diff', 'incident_report.md']})}\n\n"
 
 
 def _real_event_gen(task: str, thread_id: str):
-    """Real graph streaming using astream(stream_mode='updates')."""
     from langchain_core.messages import HumanMessage
     config = {"configurable": {"thread_id": thread_id}}
 
@@ -262,21 +241,14 @@ def _real_event_gen(task: str, thread_id: str):
                 config=config,
                 stream_mode="updates",
             ):
-                # stream_mode="updates" yields (mode_str, {node_name: update_dict})
                 for node_name, update in data.items():
-                    # Emit step event (drives Mermaid visualizer)
                     desc = DESCRIPTORS.get(node_name, f"{node_name} executing")
                     yield f"data: {json.dumps({'step': node_name, 'description': desc})}\n\n"
-
-                    # Emit readable text
                     text = _extract_text(node_name, update)
                     if text:
                         yield f"data: {json.dumps({'token': text + '\n\n'})}\n\n"
-
-                    # HITL detection
                     if update.get("needs_human_approval"):
                         yield f"data: {json.dumps({'step': 'hitl', 'description': 'HITL interrupt - awaiting human approval'})}\n\n"
-
         except Exception as e:
             err = str(e)
             is_interrupt = "interrupt" in err.lower() or "GraphInterrupt" in type(e).__name__
@@ -292,112 +264,458 @@ def _real_event_gen(task: str, thread_id: str):
 @app.post("/stream")
 async def stream(req: InvokeRequest):
     if not graph or req.force_demo:
-        # Graph not loaded or demo forced — use demo simulation
         return StreamingResponse(_demo_event_gen(), media_type="text/event-stream")
-
-    # Graph loaded — use real streaming
     return StreamingResponse(
         _real_event_gen(req.input, req.thread_id),
         media_type="text/event-stream",
     )
 
 
-# ── UI (preserved from v0.2.4 + Run Info panel + real HITL wiring) ────────
+# ── UI ──────────────────────────────────────────────────────────────────────
 
 @app.get("/ui", response_class=HTMLResponse)
 async def ui():
     return r"""<!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>AEGIS v0.3.2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEGIS v0.4.0</title>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <style>
-body{font-family: system-ui, -apple-system, sans-serif; background:#0b0f1a; color:#e8edf5; padding:24px; margin:0}
-.container{display:grid; grid-template-columns: 1fr 480px; gap:24px; max-width:1260px; margin:0 auto}
-.panel{background:#121826; border:1px solid #1e2639; border-radius:12px; padding:24px}
-h1{margin:0 0 14px; font-size:26px}
-h3{margin:0 0 12px; font-size:18px; color:#94a3b8}
-textarea{width:100%; background:#0d1322; border:1px solid #1e2639; color:#e8edf5; border-radius:8px; padding:14px; font-family:inherit; font-size:15px; resize:vertical; line-height:1.5}
-button{background:#6ea8fe; color:#081221; border:0; padding:12px 22px; border-radius:8px; font-weight:600; font-size:15px; cursor:pointer; margin-right:8px}
-button:disabled{opacity:0.6; cursor:not-allowed}
-#out{background:#0d1322; border:1px solid #1d2740; border-radius:8px; padding:18px; white-space:pre-wrap; min-height:240px; font-size:16px; line-height:1.6}
-#graph{background:#0d1322; border:1px solid #1d2740; border-radius:8px; padding:14px; min-height:340px; font-size:14px}
-#path{font-size:14px; color:#94a3b8; margin-top:10px; line-height:1.5}
-#graph-log{font-size:13px; color:#94a3b8; margin-top:8px; max-height:80px; overflow:auto; white-space:pre-line; line-height:1.4}
-a{color:#6ea8fe; text-decoration:none; font-size:14px}
-a:hover{text-decoration:underline}
-.status{font-size:15px; color:#94a3b8; margin-left:10px}
-.hitl-box{margin-top:14px; padding:16px; background:#1a2233; border:1px solid #334155; border-radius:8px; font-size:15px}
-/* Run Info Panel */
-.info-bar{display:flex; gap:18px; margin-top:14px; flex-wrap:wrap}
-.info-chip{background:#0d1322; border:1px solid #1d2740; border-radius:8px; padding:8px 16px; font-size:14px; color:#94a3b8; display:flex; align-items:center; gap:8px}
-.info-chip .val{color:#e8edf5; font-weight:600; font-size:16px}
-.mode-badge{font-size:11px; padding:3px 10px; border-radius:99px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px}
-.mode-real{background:#0d2a1a; color:#22c55e; border:1px solid #16512e}
-.mode-demo{background:#2a1a0d; color:#f59e0b; border:1px solid #5c3a00}
-/* Toggle switch */
-.toggle-row{display:flex; align-items:center; gap:12px; margin-bottom:14px}
-.toggle-label{font-size:14px; color:#94a3b8}
-.switch{position:relative; display:inline-block; width:44px; height:24px}
-.switch input{opacity:0; width:0; height:0}
-.slider{position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#1d2740; border-radius:24px; transition:.3s}
-.slider:before{position:absolute; content:\"\"; height:18px; width:18px; left:3px; bottom:3px; background:#94a3b8; border-radius:50%; transition:.3s}
-input:checked + .slider{background:#16512e}
-input:checked + .slider:before{transform:translateX(20px); background:#22c55e}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg-deep: #06080e;
+  --bg-panel: #0c1220;
+  --bg-input: #0a0f1c;
+  --border: #1a2540;
+  --border-glow: #1e3a5f;
+  --text: #e2e8f4;
+  --text-muted: #7b8ba8;
+  --accent: #38bdf8;
+  --accent-glow: rgba(56,189,248,0.25);
+  --green: #34d399;
+  --green-glow: rgba(52,211,153,0.2);
+  --red: #f87171;
+  --amber: #fbbf24;
+  --radius: 14px;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg-deep);
+  color: var(--text);
+  padding: 28px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Subtle animated gradient background */
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(ellipse at 30% 20%, rgba(56,189,248,0.06) 0%, transparent 50%),
+              radial-gradient(ellipse at 70% 80%, rgba(52,211,153,0.04) 0%, transparent 50%),
+              radial-gradient(ellipse at 50% 50%, rgba(99,102,241,0.03) 0%, transparent 60%);
+  animation: bgDrift 20s ease-in-out infinite alternate;
+  z-index: -1;
+  pointer-events: none;
+}
+
+@keyframes bgDrift {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  100% { transform: translate(-3%, -2%) rotate(3deg); }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  50% { box-shadow: 0 0 20px 4px var(--accent-glow); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes nodeAppear {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.container {
+  display: grid;
+  grid-template-columns: 1fr 500px;
+  gap: 24px;
+  max-width: 1320px;
+  margin: 0 auto;
+  animation: fadeSlideUp 0.5s ease-out;
+}
+
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 26px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle top-edge glow on panels */
+.panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.4;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 6px;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.mode-badge {
+  font-size: 11px;
+  padding: 3px 12px;
+  border-radius: 99px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  transition: all 0.3s ease;
+}
+.mode-real {
+  background: rgba(52,211,153,0.15);
+  color: var(--green);
+  border: 1px solid rgba(52,211,153,0.3);
+}
+.mode-demo {
+  background: rgba(251,191,36,0.12);
+  color: var(--amber);
+  border: 1px solid rgba(251,191,36,0.25);
+}
+
+/* ── Toggle ── */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 14px 0 18px;
+}
+.toggle-label {
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: color 0.3s;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  flex-shrink: 0;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #1a2540;
+  border-radius: 26px;
+  transition: all 0.3s ease;
+  border: 1px solid var(--border);
+}
+.slider::before {
+  content: '';
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 2px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+input:checked + .slider {
+  background: rgba(52,211,153,0.2);
+  border-color: rgba(52,211,153,0.4);
+}
+input:checked + .slider::before {
+  transform: translateX(22px);
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green-glow);
+}
+
+/* ── Input & Buttons ── */
+textarea {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-family: inherit;
+  font-size: 15px;
+  resize: vertical;
+  line-height: 1.5;
+  transition: border-color 0.2s;
+}
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.btn-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+button {
+  border: 0;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(56,189,248,0.25);
+}
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(56,189,248,0.35);
+}
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-stop {
+  background: #1a2540;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.btn-stop:hover:not(:disabled) {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.status-text {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+/* ── Output ── */
+#out {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  white-space: pre-wrap;
+  min-height: 260px;
+  max-height: 420px;
+  overflow-y: auto;
+  font-size: 15px;
+  line-height: 1.65;
+  color: #c8d3e6;
+  scrollbar-width: thin;
+  scrollbar-color: #1a2540 transparent;
+}
+#out::-webkit-scrollbar { width: 6px; }
+#out::-webkit-scrollbar-track { background: transparent; }
+#out::-webkit-scrollbar-thumb { background: #1a2540; border-radius: 3px; }
+
+/* ── Info Chips ── */
+.info-bar {
+  display: flex;
+  gap: 14px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.info-chip {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: nodeAppear 0.3s ease-out backwards;
+}
+.info-chip .val {
+  color: var(--text);
+  font-weight: 700;
+  font-size: 16px;
+  min-width: 28px;
+  text-align: right;
+}
+
+/* ── HITL ── */
+.hitl-box {
+  margin-top: 16px;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(56,189,248,0.05));
+  border: 1px solid rgba(99,102,241,0.25);
+  border-radius: 12px;
+  font-size: 15px;
+  animation: fadeSlideUp 0.3s ease-out;
+}
+.hitl-box strong { color: var(--accent); }
+
+.btn-approve {
+  background: linear-gradient(135deg, #34d399, #059669);
+  color: #052e16;
+  margin-top: 10px;
+  margin-right: 8px;
+}
+.btn-reject {
+  background: linear-gradient(135deg, #f87171, #dc2626);
+  color: #3f1f1f;
+  margin-top: 10px;
+}
+
+/* ── Right Panel ── */
+h3 {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+
+#graph {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  min-height: 360px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+#graph.active {
+  border-color: var(--border-glow);
+  box-shadow: 0 0 20px rgba(56,189,248,0.05);
+}
+
+#path {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 12px;
+  line-height: 1.6;
+}
+#path strong { color: var(--text); }
+
+#graph-log {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 8px;
+  max-height: 85px;
+  overflow-y: auto;
+  white-space: pre-line;
+  line-height: 1.5;
+  scrollbar-width: thin;
+  scrollbar-color: #1a2540 transparent;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+a:hover { color: #7dd3fc; text-decoration: underline; }
+
+.expected-path {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #4a5578;
+  line-height: 1.5;
+}
 </style>
 </head>
 <body>
 <div class="container">
-  <!-- LEFT: Console -->
+  <!-- LEFT -->
   <div>
     <div class="panel">
-      <div style="display:flex;align-items:center;gap:10px">
-        <h1>AEGIS v0.3.2</h1>
+      <div class="header-row">
+        <h1>AEGIS v0.4.0</h1>
         <span id="mode-badge" class="mode-badge mode-demo">checking...</span>
       </div>
       <div class="toggle-row">
+        <span class="toggle-label">Demo</span>
         <label class="switch">
-          <input type="checkbox" id="demo-toggle" checked>
+          <input type="checkbox" id="demo-toggle">
           <span class="slider"></span>
         </label>
-        <span class="toggle-label" id="toggle-text">Demo simulation (instant, no API calls)</span>
+        <span class="toggle-label" id="toggle-text">Live inference</span>
       </div>
       <textarea id="inp" rows="3">Investigate checkout latency spike in us-east.</textarea>
-      <div style="margin:12px 0">
-        <button id="run">Run AEGIS</button>
-        <button id="stop" disabled>Stop</button>
-        <span id="status" class="status"></span>
+      <div class="btn-row">
+        <button class="btn-primary" id="run">Run AEGIS</button>
+        <button class="btn-stop" id="stop" disabled>Stop</button>
+        <span class="status-text" id="status"></span>
       </div>
       <pre id="out">Output will appear here...</pre>
-      <!-- Run Info -->
       <div class="info-bar">
-        <div class="info-chip"><span>Steps</span> <span class="val" id="info-steps">0</span></div>
-        <div class="info-chip"><span>Confidence</span> <span class="val" id="info-conf">&mdash;</span></div>
-        <div class="info-chip"><span>Artifacts</span> <span class="val" id="info-arts">0</span></div>
-        <div class="info-chip"><span>Time</span> <span class="val" id="info-time">&mdash;</span></div>
+        <div class="info-chip" style="animation-delay:0s"><span>Steps</span> <span class="val" id="info-steps">0</span></div>
+        <div class="info-chip" style="animation-delay:0.05s"><span>Confidence</span> <span class="val" id="info-conf">&mdash;</span></div>
+        <div class="info-chip" style="animation-delay:0.1s"><span>Artifacts</span> <span class="val" id="info-arts">0</span></div>
+        <div class="info-chip" style="animation-delay:0.15s"><span>Time</span> <span class="val" id="info-time">&mdash;</span></div>
       </div>
     </div>
 
-    <!-- HITL -->
     <div id="hitl-panel" class="hitl-box" style="display:none">
-      <strong>HITL: Approve code changes &amp; remediation?</strong><br>
-      <button id="btn-approve" onclick="approveHITL(true)" style="background:#22c55e;color:#052e16">Approve</button>
-      <button id="btn-reject" onclick="approveHITL(false)" style="background:#f87171;color:#3f1f1f">Reject</button>
-      <span id="hitl-status" class="status"></span>
+      <strong>HITL:</strong> Approve code changes &amp; remediation?<br>
+      <button class="btn-approve" id="btn-approve" onclick="approveHITL(true)">Approve</button>
+      <button class="btn-reject" id="btn-reject" onclick="approveHITL(false)">Reject</button>
+      <span class="status-text" id="hitl-status"></span>
     </div>
   </div>
 
-  <!-- RIGHT: Live Graph Visualizer -->
+  <!-- RIGHT -->
   <div class="panel">
     <h3>Live LangGraph Visualizer</h3>
     <div id="graph"></div>
     <div id="path"></div>
     <div id="graph-log"></div>
-    <div style="margin-top:12px">
+    <div style="margin-top:14px">
       <a href="https://smith.langchain.com" target="_blank">View full trace in LangSmith (aegis-production) &#8599;</a>
     </div>
-    <div style="margin-top:12px;font-size:13px;color:#64748b">
+    <div class="expected-path">
       Expected path: supervisor &#8594; sre_analyst &#8594; supervisor &#8594; knowledge &#8594; supervisor &#8594; coder &#8594; [HITL] &#8594; evaluator &#8594; communicator
     </div>
   </div>
@@ -414,51 +732,60 @@ let stepCount = 0;
 let artifactCount = 0;
 let startTime = 0;
 let timerInterval = null;
-
-// Health check on load
 let graphAvailable = false;
+let isDemoMode = true;
+
+// ── Health check ──
 fetch('/health').then(r => r.json()).then(h => {
-  const badge = $('#mode-badge');
   graphAvailable = !!h.graph;
+  const badge = $('#mode-badge');
+  const toggle = $('#demo-toggle');
   if (graphAvailable) {
-    badge.textContent = 'LIVE';
-    badge.className = 'mode-badge mode-real';
-    $('#status').textContent = 'graph ready';
-    // Toggle defaults to demo even when live
-    $('#toggle-text').textContent = 'Demo simulation (toggle off for live inference)';
+    toggle.disabled = false;
+    updateToggleUI();
   } else {
     badge.textContent = 'DEMO';
     badge.className = 'mode-badge mode-demo';
+    toggle.checked = false;
+    toggle.disabled = true;
+    $('#toggle-text').textContent = 'Live inference';
     $('#status').textContent = 'demo mode';
     out.textContent = 'AEGIS graph not loaded. Running in demo simulation mode.\n\nSet GOOGLE_API_KEY in Vercel and redeploy for live inference.';
-    // No toggle when no graph
-    $('#demo-toggle').checked = true;
-    $('#demo-toggle').disabled = true;
-    $('#toggle-text').textContent = 'Demo only (no graph loaded)';
+    isDemoMode = true;
   }
 }).catch(() => {
   $('#mode-badge').textContent = 'OFFLINE';
   $('#status').textContent = 'API unreachable';
 });
 
-// Toggle handler
-$('#demo-toggle').onchange = function() {
-  const on = this.checked;
+function updateToggleUI() {
+  const toggle = $('#demo-toggle');
   const badge = $('#mode-badge');
-  if (graphAvailable) {
-    badge.textContent = on ? 'DEMO' : 'LIVE';
-    badge.className = 'mode-badge ' + (on ? 'mode-demo' : 'mode-real');
-    $('#toggle-text').textContent = on ? 'Demo simulation (toggle off for live inference)' : 'Live inference (uses API keys, may be slow)';
-    $('#status').textContent = on ? 'demo mode' : 'live mode';
+  const label = $('#toggle-text');
+  isDemoMode = !toggle.checked;
+  if (!graphAvailable) return;
+  if (toggle.checked) {
+    badge.textContent = 'LIVE';
+    badge.className = 'mode-badge mode-real';
+    label.textContent = 'Live inference (uses API keys)';
+    $('#status').textContent = 'live mode';
+  } else {
+    badge.textContent = 'DEMO';
+    badge.className = 'mode-badge mode-demo';
+    label.textContent = 'Live inference';
+    $('#status').textContent = 'demo mode';
   }
-};
+}
 
+$('#demo-toggle').addEventListener('change', updateToggleUI);
+
+// ── Mermaid ──
 function initMermaid() {
   if (typeof mermaid !== 'undefined') {
-    mermaid.initialize({ 
-      startOnLoad: false, 
+    mermaid.initialize({
+      startOnLoad: false,
       theme: 'dark',
-      flowchart: { curve: 'basis' }
+      flowchart: { curve: 'basis', htmlLabels: true }
     });
     mermaidReady = true;
   }
@@ -467,48 +794,41 @@ function initMermaid() {
 async function renderGraph(steps) {
   const el = $('#graph');
   if (!el || !mermaidReady) {
-    el.innerHTML = '<div style="padding:40px;text-align:center;color:#64748b">Graph loading...</div>';
+    el.innerHTML = '<div style="padding:40px;text-align:center;color:#4a5578">Graph loading...</div>';
     return;
   }
-  
-  let m = `graph TD
-    supervisor[Supervisor] --> sre_analyst[SRE Analyst]
-    supervisor --> knowledge[Knowledge]
-    supervisor --> coder[Coder]
-    supervisor --> evaluator[Evaluator]
-    supervisor --> communicator[Communicator]
-    sre_analyst --> supervisor
-    knowledge --> supervisor
-    coder --> supervisor
-    evaluator --> supervisor
-    communicator --> supervisor
-    supervisor -->|HITL interrupt| hitl[HITL]
-    hitl --> evaluator
-  `;
-  
-  m += `
-classDef active fill:#6ea8fe,stroke:#081221,stroke-width:4px,color:#081221
-classDef completed fill:#22c55e,stroke:#166534,stroke-width:2px,color:#052e16
-classDef default fill:#1e2639,stroke:#3b4a6b,color:#e8edf5
-  `;
-  
+
+  let m = 'graph TD\n'
+    + '    supervisor[Supervisor] --> sre_analyst[SRE Analyst]\n'
+    + '    supervisor --> knowledge[Knowledge]\n'
+    + '    supervisor --> coder[Coder]\n'
+    + '    supervisor --> evaluator[Evaluator]\n'
+    + '    supervisor --> communicator[Communicator]\n'
+    + '    sre_analyst --> supervisor\n'
+    + '    knowledge --> supervisor\n'
+    + '    coder --> supervisor\n'
+    + '    evaluator --> supervisor\n'
+    + '    communicator --> supervisor\n'
+    + '    supervisor -->|HITL interrupt| hitl[HITL]\n'
+    + '    hitl --> evaluator\n';
+
+  m += '\nclassDef active fill:#38bdf8,stroke:#1e3a5f,stroke-width:3px,color:#0a0f1c\n'
+    + 'classDef completed fill:#34d399,stroke:#065f46,stroke-width:2px,color:#052e16\n'
+    + 'classDef default fill:#1a2540,stroke:#2d3a52,color:#c8d3e6\n';
+
   const last = steps.length ? steps[steps.length - 1] : '';
-  
   steps.forEach((s, idx) => {
-    if (s && idx < steps.length - 1) {
-      m += `class ${s} completed\n`;
-    }
+    if (s && idx < steps.length - 1) m += 'class ' + s + ' completed\n';
   });
-  
-  if (last) {
-    m += `class ${last} active\n`;
-  }
-  
+  if (last) m += 'class ' + last + ' active\n';
+
+  el.classList.toggle('active', steps.length > 0);
+
   try {
-    const { svg } = await mermaid.render('mermaid-diagram-' + Date.now(), m);
+    const { svg } = await mermaid.render('mmd-' + Date.now(), m);
     el.innerHTML = svg;
   } catch (err) {
-    el.innerHTML = '<pre style="color:#f66;font-size:11px">Mermaid render error</pre>';
+    el.innerHTML = '<div style="padding:20px;color:#f87171;font-size:13px">Mermaid render error</div>';
   }
 }
 
@@ -516,20 +836,14 @@ function addStep(step, description) {
   if (step === 'supervisor' || step === 'hitl' || !currentPath.includes(step)) {
     currentPath.push(step);
   }
-  
   renderGraph(currentPath);
-  
   const pathEl = $('#path');
-  if (pathEl) {
-    pathEl.innerHTML = '<strong>Current path:</strong><br>' + currentPath.join(' &#8594; ');
-  }
-  
+  if (pathEl) pathEl.innerHTML = '<strong>Current path:</strong><br>' + currentPath.join(' &#8594; ');
   const logEl = $('#graph-log');
   if (logEl && description) {
     logEl.textContent += (logEl.textContent ? '\n' : '') + '\u2022 ' + description;
     logEl.scrollTop = logEl.scrollHeight;
   }
-  
   if (step === 'hitl') {
     const hitl = $('#hitl-panel');
     if (hitl) hitl.style.display = 'block';
@@ -538,10 +852,10 @@ function addStep(step, description) {
 
 function updateTimer() {
   if (!startTime) return;
-  const s = ((Date.now() - startTime) / 1000).toFixed(1);
-  $('#info-time').textContent = s + 's';
+  $('#info-time').textContent = ((Date.now() - startTime) / 1000).toFixed(1) + 's';
 }
 
+// ── HITL (instant in demo mode, real in live mode) ──
 async function approveHITL(approved) {
   const hitlPanel = $('#hitl-panel');
   const btnApprove = $('#btn-approve');
@@ -552,13 +866,39 @@ async function approveHITL(approved) {
   btnReject.disabled = true;
   hitlStatus.textContent = 'sending...';
 
-  const msg = approved 
+  if (isDemoMode) {
+    // Instant client-side simulation — no API call
+    await new Promise(r => setTimeout(r, 600));
+    if (approved) {
+      out.textContent += '\n\n[HITL APPROVED] Human approved code changes. Resuming graph execution...';
+      hitlStatus.textContent = 'approved';
+      hitlStatus.style.color = '#34d399';
+      const pathEl = $('#path');
+      if (pathEl) pathEl.innerHTML += ' &#8594; <span style="color:#34d399">approved</span>';
+    } else {
+      out.textContent += '\n\n[HITL REJECTED] Human rejected the proposed changes. Investigation stopped.';
+      hitlStatus.textContent = 'rejected';
+      hitlStatus.style.color = '#f87171';
+      const pathEl = $('#path');
+      if (pathEl) pathEl.innerHTML += ' &#8594; <span style="color:#f87171">rejected</span>';
+    }
+    out.scrollTop = out.scrollHeight;
+    setTimeout(() => {
+      hitlPanel.style.display = 'none';
+      btnApprove.disabled = false;
+      btnReject.disabled = false;
+      hitlStatus.textContent = '';
+    }, 1200);
+    return;
+  }
+
+  // Live mode — call real resume endpoint
+  const msg = approved
     ? '\n\n[HITL APPROVED] Human approved code changes. Resuming graph execution...'
     : '\n\n[HITL REJECTED] Human rejected the proposed changes. Stopping.';
   out.textContent += msg;
   out.scrollTop = out.scrollHeight;
 
-  // Call real resume endpoint
   try {
     const res = await fetch('/threads/' + encodeURIComponent(lastThread) + '/resume', {
       method: 'POST',
@@ -566,31 +906,21 @@ async function approveHITL(approved) {
       body: JSON.stringify({approved: approved, comment: approved ? 'approved via UI' : 'rejected via UI'})
     });
     const j = await res.json();
-
     if (j.resumed) {
       hitlStatus.textContent = 'resumed OK';
-      hitlStatus.style.color = '#22c55e';
-      if (j.output) {
-        out.textContent += '\n\n' + j.output;
-        out.scrollTop = out.scrollHeight;
-      }
-      if (j.confidence) {
-        $('#info-conf').textContent = (j.confidence * 100).toFixed(0) + '%';
-      }
+      hitlStatus.style.color = '#34d399';
+      if (j.output) { out.textContent += '\n\n' + j.output; out.scrollTop = out.scrollHeight; }
+      if (j.confidence) $('#info-conf').textContent = (j.confidence * 100).toFixed(0) + '%';
     } else {
-      hitlStatus.textContent = 'resume failed: ' + (j.error || 'unknown');
+      hitlStatus.textContent = 'failed: ' + (j.error || 'unknown');
       hitlStatus.style.color = '#f87171';
     }
   } catch (e) {
     hitlStatus.textContent = 'API error: ' + e;
     hitlStatus.style.color = '#f87171';
   }
-
   const pathEl = $('#path');
-  if (pathEl) {
-    pathEl.innerHTML = pathEl.innerHTML + (approved ? ' &#8594; approved' : ' &#8594; rejected');
-  }
-
+  if (pathEl) pathEl.innerHTML += approved ? ' &#8594; approved' : ' &#8594; rejected';
   setTimeout(() => {
     hitlPanel.style.display = 'none';
     btnApprove.disabled = false;
@@ -599,6 +929,7 @@ async function approveHITL(approved) {
   }, 2000);
 }
 
+// ── Main stream runner ──
 async function runStream() {
   out.textContent = '';
   $('#run').disabled = true;
@@ -607,7 +938,7 @@ async function runStream() {
 
   const hitl = $('#hitl-panel');
   if (hitl) hitl.style.display = 'none';
-  
+
   currentPath = [];
   stepCount = 0;
   artifactCount = 0;
@@ -616,16 +947,15 @@ async function runStream() {
   $('#info-conf').textContent = '\u2014';
   $('#info-arts').textContent = '0';
   $('#info-time').textContent = '0.0s';
-
   const pathEl = $('#path');
   if (pathEl) pathEl.innerHTML = '';
   const logEl = $('#graph-log');
   if (logEl) logEl.textContent = '';
-  
+
   renderGraph(currentPath);
   clearInterval(timerInterval);
   timerInterval = setInterval(updateTimer, 200);
-  
+
   const task = $('#inp').value;
   lastThread = 'web-' + Date.now();
   controller = new AbortController();
@@ -634,7 +964,7 @@ async function runStream() {
     const res = await fetch('/stream', {
       method: 'POST',
       headers: {'content-type': 'application/json'},
-      body: JSON.stringify({input: task, thread_id: lastThread, force_demo: $('#demo-toggle').checked}),
+      body: JSON.stringify({input: task, thread_id: lastThread, force_demo: isDemoMode}),
       signal: controller.signal
     });
 
@@ -659,11 +989,6 @@ async function runStream() {
           if (j.token) {
             out.textContent += j.token;
             out.scrollTop = out.scrollHeight;
-            // Extract metrics from text
-            const cm = j.token.match(/Confidence:\s*(\d+%)/);
-            if (cm) $('#info-conf').textContent = cm[1];
-            const am = j.token.match(/Artifacts:\s*(.+)/);
-            if (am) { artifactCount += am[1].split(',').length; $('#info-arts').textContent = artifactCount; }
           }
           if (j.step) {
             stepCount++;
@@ -698,16 +1023,14 @@ async function runStream() {
 }
 
 $('#run').onclick = runStream;
-$('#stop').onclick = () => {
-  if (controller) controller.abort();
-};
+$('#stop').onclick = () => { if (controller) controller.abort(); };
 
 window.onload = () => {
   initMermaid();
   setTimeout(() => {
     renderGraph([]);
     const pathEl = $('#path');
-    if (pathEl) pathEl.innerHTML = '<em>Graph will animate live during run</em>';
+    if (pathEl) pathEl.innerHTML = '<em style="color:#4a5578">Graph will animate live during run</em>';
   }, 80);
 };
 </script>
