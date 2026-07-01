@@ -248,11 +248,27 @@ def _real_event_gen(task: str, thread_id: str):
 
     async def gen():
         try:
-            async for node_name, update in graph.astream(
+            async for chunk in graph.astream(
                 {"task": task, "messages": [HumanMessage(content=task)]},
                 config=config,
                 stream_mode="updates",
             ):
+                # LangGraph yield format varies by version:
+                #   >=0.2: (node_name, update_dict) tuple
+                #   some builds: just update_dict
+                node_name = None
+                update = None
+                if isinstance(chunk, tuple) and len(chunk) == 2:
+                    node_name, update = chunk[0], chunk[1]
+                elif isinstance(chunk, dict):
+                    update = chunk
+                    node_name = update.pop("__node__", None) or "agent"
+                else:
+                    continue
+
+                if not isinstance(update, dict):
+                    update = {}
+
                 # Emit step event (drives Mermaid visualizer)
                 desc = DESCRIPTORS.get(node_name, f"{node_name} executing")
                 yield f"data: {json.dumps({'step': node_name, 'description': desc})}\n\n"
@@ -368,7 +384,7 @@ a:hover{text-decoration:underline}
     <div id="path"></div>
     <div id="graph-log"></div>
     <div style="margin-top:12px">
-      <a href="https://smith.langchain.com/projects/aegis-production" target="_blank">View full trace in LangSmith (aegis-production) &#8599;</a>
+      <a href="https://smith.langchain.com/" target="_blank">View traces in LangSmith (project: aegis-production) &#8599;</a>
     </div>
     <div style="margin-top:8px;font-size:11px;color:#64748b">
       Exact path: supervisor &#8594; sre_analyst &#8594; supervisor &#8594; knowledge &#8594; supervisor &#8594; coder &#8594; [HITL] &#8594; evaluator &#8594; communicator
