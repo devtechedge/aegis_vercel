@@ -136,6 +136,53 @@ async def resume_thread(thread_id: str, req: ResumeRequest):
         return {"thread_id": thread_id, "resumed": False, "error": str(e)}
 
 
+@app.post("/threads/{thread_id}/resume/stream")
+async def resume_thread_stream(thread_id: str, req: ResumeRequest):
+    """SSE streaming resume — runs remaining nodes (evaluator, communicator) after HITL."""
+    if not graph:
+        return StreamingResponse(
+            iter([f"data: {json.dumps({'error': 'Graph not loaded'})}\n\n", "data: [DONE]\n\n"]),
+            media_type="text/event-stream",
+        )
+    from langgraph.types import Command
+
+    def _normalize_chunk(chunk):
+        if isinstance(chunk, dict):
+            return chunk
+        if isinstance(chunk, tuple) and len(chunk) == 2:
+            first, second = chunk
+            if isinstance(second, dict) and any(k in DESCRIPTORS for k in second):
+                return second
+            return {first: second} if isinstance(second, dict) else {str(first): second}
+        return chunk if isinstance(chunk, dict) else {"unknown": chunk}
+
+    async def gen():
+        try:
+            config = {"configurable": {"thread_id": thread_id}}
+            async for chunk in graph.astream(
+                Command(resume={"approved": req.approved, "comment": req.comment}),
+                config=config,
+                stream_mode="updates",
+            ):
+                data = _normalize_chunk(chunk)
+                for node_name, update in data.items():
+                    if node_name.startswith("__"):
+                        continue
+                    if not isinstance(update, dict):
+                        update = {"messages": update}
+                    desc = DESCRIPTORS.get(node_name, f"{node_name} executing")
+                    yield f"data: {json.dumps({'step': node_name, 'description': desc})}\n\n"
+                    text = _extract_text(node_name, update)
+                    if text:
+                        yield f"data: {json.dumps({'token': text + '\n\n'})}\n\n"
+        except Exception as e:
+            err = str(e)
+            yield f"data: {json.dumps({'error': err})}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(gen(), media_type="text/event-stream")
+
+
 # ── Streaming ───────────────────────────────────────────────────────────────
 
 DESCRIPTORS = {
@@ -151,21 +198,24 @@ DESCRIPTORS = {
 
 def _extract_text(node: str, update: dict) -> str:
     parts = []
-    for m in update.get("messages", []):
+    # Only use the LAST message from each node — earlier messages are
+    # accumulated history from previous agents and cause duplicate output.
+    messages = update.get("messages", [])
+    if messages:
+        m = messages[-1]
         content = getattr(m, "content", "") if hasattr(m, "content") else str(m)
-        if not content:
-            continue
-        if node == "supervisor" and '"next"' in str(content):
-            try:
-                parsed = json.loads(content) if isinstance(content, str) else content
-                if isinstance(parsed, dict) and "next" in parsed:
-                    parts.append(f"  Route: {parsed.get('next', '?')}")
-                    if parsed.get("reasoning"):
-                        parts.append(f"  Reasoning: {parsed['reasoning'][:120]}")
-                    continue
-            except Exception:
-                pass
-        parts.append(content if len(str(content)) < 800 else str(content)[:800] + "...")
+        if content:
+            if node == "supervisor" and '"next"' in str(content):
+                try:
+                    parsed = json.loads(content) if isinstance(content, str) else content
+                    if isinstance(parsed, dict) and "next" in parsed:
+                        parts.append(f"  Route: {parsed.get('next', '?')}")
+                        if parsed.get("reasoning"):
+                            parts.append(f"  Reasoning: {parsed['reasoning'][:120]}")
+                except Exception:
+                    pass
+            else:
+                parts.append(content if len(str(content)) < 800 else str(content)[:800] + "...")
 
     next_agent = update.get("next_agent")
     if next_agent:
@@ -267,6 +317,10 @@ def _real_event_gen(task: str, thread_id: str):
             ):
                 data = _normalize_chunk(chunk)
                 for node_name, update in data.items():
+                    # Skip LangGraph internal interrupt nodes —
+                    # handled cleanly by the HITL event below.
+                    if node_name.startswith("__"):
+                        continue
                     if not isinstance(update, dict):
                         update = {"messages": update}
                     desc = DESCRIPTORS.get(node_name, f"{node_name} executing")
@@ -280,7 +334,7 @@ def _real_event_gen(task: str, thread_id: str):
             err = str(e)
             is_interrupt = "interrupt" in err.lower() or "GraphInterrupt" in type(e).__name__
             if is_interrupt:
-                yield f"data: {json.dumps({'step': 'hitl', 'description': f'HITL interrupt: {err[:100]}'})}\n\n"
+                yield f"data: {json.dumps({'step': 'hitl', 'description': 'HITL interrupt - awaiting human approval'})}\n\n"
             else:
                 yield f"data: {json.dumps({'error': err})}\n\n"
         yield "data: [DONE]\n\n"
@@ -919,41 +973,84 @@ async function approveHITL(approved) {
     return;
   }
 
-  // Live mode — call real resume endpoint
+  // Live mode — use streaming resume to show evaluator/communicator output
   const msg = approved
-    ? '\n\n[HITL APPROVED] Human approved code changes. Resuming graph execution...'
-    : '\n\n[HITL REJECTED] Human rejected the proposed changes. Stopping.';
+    ? '\n\n[HITL APPROVED] Human approved code changes. Resuming graph execution...\n'
+    : '\n\n[HITL REJECTED] Human rejected the proposed changes. Stopping.\n';
   out.textContent += msg;
   out.scrollTop = out.scrollHeight;
 
+  const pathEl = $('#path');
+  if (pathEl) pathEl.innerHTML += approved ? ' &#8594; <span style="color:#34d399">approved</span>' : ' &#8594; <span style="color:#f87171">rejected</span>';
+
+  if (!approved) {
+    hitlStatus.textContent = 'rejected';
+    hitlStatus.style.color = '#f87171';
+    setTimeout(() => {
+      hitlPanel.style.display = 'none';
+      btnApprove.disabled = false;
+      btnReject.disabled = false;
+      hitlStatus.textContent = '';
+    }, 1200);
+    return;
+  }
+
+  // Stream the remaining nodes (evaluator → communicator) via SSE
   try {
-    const res = await fetch('/threads/' + encodeURIComponent(lastThread) + '/resume', {
+    const res = await fetch('/threads/' + encodeURIComponent(lastThread) + '/resume/stream', {
       method: 'POST',
       headers: {'content-type': 'application/json'},
-      body: JSON.stringify({approved: approved, comment: approved ? 'approved via UI' : 'rejected via UI'})
+      body: JSON.stringify({approved: true, comment: 'approved via UI'})
     });
-    const j = await res.json();
-    if (j.resumed) {
-      hitlStatus.textContent = 'resumed OK';
-      hitlStatus.style.color = '#34d399';
-      if (j.output) { out.textContent += '\n\n' + j.output; out.scrollTop = out.scrollHeight; }
-      if (j.confidence) $('#info-conf').textContent = (j.confidence * 100).toFixed(0) + '%';
-    } else {
-      hitlStatus.textContent = 'failed: ' + (j.error || 'unknown');
-      hitlStatus.style.color = '#f87171';
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, {stream: true});
+      const parts = buf.split(/\n\n/);
+      buf = parts.pop() || '';
+      for (const p of parts) {
+        if (!p.startsWith('data: ')) continue;
+        const d = p.slice(6).trim();
+        if (d === '[DONE]') continue;
+        try {
+          const j = JSON.parse(d);
+          if (j.token) {
+            out.textContent += j.token;
+            out.scrollTop = out.scrollHeight;
+          }
+          if (j.step) {
+            stepCount++;
+            $('#info-steps').textContent = stepCount;
+            addStep(j.step, j.description || '');
+          }
+          if (j.confidence !== undefined) {
+            $('#info-conf').textContent = j.confidence + '%';
+          }
+          if (j.artifacts) {
+            artifactCount = j.artifacts.length;
+            $('#info-arts').textContent = artifactCount;
+          }
+          if (j.error) {
+            out.textContent += '\n[error] ' + j.error;
+          }
+        } catch (e) {}
+      }
     }
+    hitlStatus.textContent = 'resumed OK';
+    hitlStatus.style.color = '#34d399';
   } catch (e) {
     hitlStatus.textContent = 'API error: ' + e;
     hitlStatus.style.color = '#f87171';
   }
-  const pathEl = $('#path');
-  if (pathEl) pathEl.innerHTML += approved ? ' &#8594; approved' : ' &#8594; rejected';
   setTimeout(() => {
     hitlPanel.style.display = 'none';
     btnApprove.disabled = false;
     btnReject.disabled = false;
     hitlStatus.textContent = '';
-  }, 2000);
+  }, 1500);
 }
 
 // ── Main stream runner ──
