@@ -10,7 +10,7 @@ def _has(key: str) -> bool:
 def get_llm(task: str = "fast") -> BaseChatModel:
     """
     LLM Router with fallbacks.
-    fast -> gpt-4o-mini / gemini-1.5-flash
+    fast -> gpt-4o-mini / gemini-2.5-flash
     reasoning -> gpt-4o
     coding -> claude-3.5-sonnet
     Vercel-safe: falls back to FakeListChatModel if no keys / missing packages
@@ -54,7 +54,7 @@ def get_llm(task: str = "fast") -> BaseChatModel:
     if _has("GOOGLE_API_KEY"):
         try:
             from langchain_google_genai import ChatGoogleGenerativeAI
-            models.append(ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0))
+            models.append(ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0))
         except Exception as e:
             # langchain-google-genai not installed – will fall back to Fake
             pass
