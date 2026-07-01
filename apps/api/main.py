@@ -10,7 +10,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
-VERSION = "0.3.0"
+VERSION = "0.3.2"
 
 app = FastAPI(title="AEGIS API", version=VERSION, description="Autonomous Enterprise Graph Intelligence System")
 
@@ -46,6 +46,7 @@ from typing import Any
 class InvokeRequest(BaseModel):
     input: str
     thread_id: str = "default"
+    force_demo: bool = False
 
 
 class ResumeRequest(BaseModel):
@@ -217,6 +218,11 @@ def _demo_event_gen():
         {"step": "evaluator", "description": "Evaluator validating proposed fix against SLOs and safety"},
         {"step": "communicator", "description": "Communicator preparing final summary, Slack notification and incident report"},
     ]
+    # Metrics emitted at end for demo polish
+    metric_events = [
+        {"confidence": 96},
+        {"artifacts": ["diagnostic_script.py", "patch.diff", "incident_report.md"]},
+    ]
     nice_text = (
         "AEGIS has completed the investigation. "
         "The checkout latency spike in us-east was caused by database connection pool exhaustion during peak traffic. "
@@ -239,6 +245,9 @@ def _demo_event_gen():
     for w in range(word_idx, len(words)):
         token = words[w] + (" " if w < len(words) - 1 else "")
         yield f"data: {json.dumps({'token': token})}\n\n"
+    # Emit final metrics
+    for me in metric_events:
+        yield f"data: {json.dumps(me)}\n\n"
 
 
 def _real_event_gen(task: str, thread_id: str):
@@ -248,39 +257,25 @@ def _real_event_gen(task: str, thread_id: str):
 
     async def gen():
         try:
-            async for chunk in graph.astream(
+            async for mode, data in graph.astream(
                 {"task": task, "messages": [HumanMessage(content=task)]},
                 config=config,
                 stream_mode="updates",
             ):
-                # LangGraph yield format varies by version:
-                #   >=0.2: (node_name, update_dict) tuple
-                #   some builds: just update_dict
-                node_name = None
-                update = None
-                if isinstance(chunk, tuple) and len(chunk) == 2:
-                    node_name, update = chunk[0], chunk[1]
-                elif isinstance(chunk, dict):
-                    update = chunk
-                    node_name = update.pop("__node__", None) or "agent"
-                else:
-                    continue
+                # stream_mode="updates" yields (mode_str, {node_name: update_dict})
+                for node_name, update in data.items():
+                    # Emit step event (drives Mermaid visualizer)
+                    desc = DESCRIPTORS.get(node_name, f"{node_name} executing")
+                    yield f"data: {json.dumps({'step': node_name, 'description': desc})}\n\n"
 
-                if not isinstance(update, dict):
-                    update = {}
+                    # Emit readable text
+                    text = _extract_text(node_name, update)
+                    if text:
+                        yield f"data: {json.dumps({'token': text + '\n\n'})}\n\n"
 
-                # Emit step event (drives Mermaid visualizer)
-                desc = DESCRIPTORS.get(node_name, f"{node_name} executing")
-                yield f"data: {json.dumps({'step': node_name, 'description': desc})}\n\n"
-
-                # Emit readable text
-                text = _extract_text(node_name, update)
-                if text:
-                    yield f"data: {json.dumps({'token': text + '\n\n'})}\n\n"
-
-                # HITL detection
-                if update.get("needs_human_approval"):
-                    yield f"data: {json.dumps({'step': 'hitl', 'description': 'HITL interrupt - awaiting human approval'})}\n\n"
+                    # HITL detection
+                    if update.get("needs_human_approval"):
+                        yield f"data: {json.dumps({'step': 'hitl', 'description': 'HITL interrupt - awaiting human approval'})}\n\n"
 
         except Exception as e:
             err = str(e)
@@ -296,8 +291,8 @@ def _real_event_gen(task: str, thread_id: str):
 
 @app.post("/stream")
 async def stream(req: InvokeRequest):
-    if not graph:
-        # Graph not loaded — use demo simulation
+    if not graph or req.force_demo:
+        # Graph not loaded or demo forced — use demo simulation
         return StreamingResponse(_demo_event_gen(), media_type="text/event-stream")
 
     # Graph loaded — use real streaming
@@ -315,32 +310,41 @@ async def ui():
 <html>
 <head>
 <meta charset="utf-8">
-<title>AEGIS v0.3.0</title>
+<title>AEGIS v0.3.2</title>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <style>
-body{font-family: system-ui, -apple-system, sans-serif; background:#0b0f1a; color:#e8edf5; padding:20px; margin:0}
-.container{display:grid; grid-template-columns: 1fr 460px; gap:20px; max-width:1180px; margin:0 auto}
-.panel{background:#121826; border:1px solid #1e2639; border-radius:12px; padding:20px}
-h1{margin:0 0 12px; font-size:22px}
-h3{margin:0 0 10px; font-size:15px; color:#94a3b8}
-textarea{width:100%; background:#0d1322; border:1px solid #1e2639; color:#e8edf5; border-radius:8px; padding:12px; font-family:inherit; resize:vertical}
-button{background:#6ea8fe; color:#081221; border:0; padding:10px 18px; border-radius:8px; font-weight:600; cursor:pointer; margin-right:8px}
+body{font-family: system-ui, -apple-system, sans-serif; background:#0b0f1a; color:#e8edf5; padding:24px; margin:0}
+.container{display:grid; grid-template-columns: 1fr 480px; gap:24px; max-width:1260px; margin:0 auto}
+.panel{background:#121826; border:1px solid #1e2639; border-radius:12px; padding:24px}
+h1{margin:0 0 14px; font-size:26px}
+h3{margin:0 0 12px; font-size:18px; color:#94a3b8}
+textarea{width:100%; background:#0d1322; border:1px solid #1e2639; color:#e8edf5; border-radius:8px; padding:14px; font-family:inherit; font-size:15px; resize:vertical; line-height:1.5}
+button{background:#6ea8fe; color:#081221; border:0; padding:12px 22px; border-radius:8px; font-weight:600; font-size:15px; cursor:pointer; margin-right:8px}
 button:disabled{opacity:0.6; cursor:not-allowed}
-#out{background:#0d1322; border:1px solid #1d2740; border-radius:8px; padding:16px; white-space:pre-wrap; min-height:210px; font-size:14.5px; line-height:1.5}
-#graph{background:#0d1322; border:1px solid #1d2740; border-radius:8px; padding:12px; min-height:320px; font-size:13px}
-#path{font-size:12px; color:#64748b; margin-top:8px; line-height:1.4}
-#graph-log{font-size:11px; color:#64748b; margin-top:6px; max-height:70px; overflow:auto; white-space:pre-line}
-a{color:#6ea8fe; text-decoration:none; font-size:12px}
+#out{background:#0d1322; border:1px solid #1d2740; border-radius:8px; padding:18px; white-space:pre-wrap; min-height:240px; font-size:16px; line-height:1.6}
+#graph{background:#0d1322; border:1px solid #1d2740; border-radius:8px; padding:14px; min-height:340px; font-size:14px}
+#path{font-size:14px; color:#94a3b8; margin-top:10px; line-height:1.5}
+#graph-log{font-size:13px; color:#94a3b8; margin-top:8px; max-height:80px; overflow:auto; white-space:pre-line; line-height:1.4}
+a{color:#6ea8fe; text-decoration:none; font-size:14px}
 a:hover{text-decoration:underline}
-.status{font-size:13px; color:#64748b; margin-left:8px}
-.hitl-box{margin-top:12px; padding:12px; background:#1a2233; border:1px solid #334155; border-radius:8px}
+.status{font-size:15px; color:#94a3b8; margin-left:10px}
+.hitl-box{margin-top:14px; padding:16px; background:#1a2233; border:1px solid #334155; border-radius:8px; font-size:15px}
 /* Run Info Panel */
-.info-bar{display:flex; gap:16px; margin-top:10px; flex-wrap:wrap}
-.info-chip{background:#0d1322; border:1px solid #1d2740; border-radius:6px; padding:6px 12px; font-size:12px; color:#94a3b8; display:flex; align-items:center; gap:6px}
-.info-chip .val{color:#e8edf5; font-weight:600; font-size:13px}
-.mode-badge{font-size:10px; padding:2px 8px; border-radius:99px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px}
+.info-bar{display:flex; gap:18px; margin-top:14px; flex-wrap:wrap}
+.info-chip{background:#0d1322; border:1px solid #1d2740; border-radius:8px; padding:8px 16px; font-size:14px; color:#94a3b8; display:flex; align-items:center; gap:8px}
+.info-chip .val{color:#e8edf5; font-weight:600; font-size:16px}
+.mode-badge{font-size:11px; padding:3px 10px; border-radius:99px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px}
 .mode-real{background:#0d2a1a; color:#22c55e; border:1px solid #16512e}
 .mode-demo{background:#2a1a0d; color:#f59e0b; border:1px solid #5c3a00}
+/* Toggle switch */
+.toggle-row{display:flex; align-items:center; gap:12px; margin-bottom:14px}
+.toggle-label{font-size:14px; color:#94a3b8}
+.switch{position:relative; display:inline-block; width:44px; height:24px}
+.switch input{opacity:0; width:0; height:0}
+.slider{position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#1d2740; border-radius:24px; transition:.3s}
+.slider:before{position:absolute; content:\"\"; height:18px; width:18px; left:3px; bottom:3px; background:#94a3b8; border-radius:50%; transition:.3s}
+input:checked + .slider{background:#16512e}
+input:checked + .slider:before{transform:translateX(20px); background:#22c55e}
 </style>
 </head>
 <body>
@@ -349,8 +353,15 @@ a:hover{text-decoration:underline}
   <div>
     <div class="panel">
       <div style="display:flex;align-items:center;gap:10px">
-        <h1>AEGIS v0.3.0</h1>
+        <h1>AEGIS v0.3.2</h1>
         <span id="mode-badge" class="mode-badge mode-demo">checking...</span>
+      </div>
+      <div class="toggle-row">
+        <label class="switch">
+          <input type="checkbox" id="demo-toggle" checked>
+          <span class="slider"></span>
+        </label>
+        <span class="toggle-label" id="toggle-text">Demo simulation (instant, no API calls)</span>
       </div>
       <textarea id="inp" rows="3">Investigate checkout latency spike in us-east.</textarea>
       <div style="margin:12px 0">
@@ -384,10 +395,10 @@ a:hover{text-decoration:underline}
     <div id="path"></div>
     <div id="graph-log"></div>
     <div style="margin-top:12px">
-      <a href="https://smith.langchain.com/" target="_blank">View traces in LangSmith (project: aegis-production) &#8599;</a>
+      <a href="https://smith.langchain.com" target="_blank">View full trace in LangSmith (aegis-production) &#8599;</a>
     </div>
-    <div style="margin-top:8px;font-size:11px;color:#64748b">
-      Exact path: supervisor &#8594; sre_analyst &#8594; supervisor &#8594; knowledge &#8594; supervisor &#8594; coder &#8594; [HITL] &#8594; evaluator &#8594; communicator
+    <div style="margin-top:12px;font-size:13px;color:#64748b">
+      Expected path: supervisor &#8594; sre_analyst &#8594; supervisor &#8594; knowledge &#8594; supervisor &#8594; coder &#8594; [HITL] &#8594; evaluator &#8594; communicator
     </div>
   </div>
 </div>
@@ -405,22 +416,42 @@ let startTime = 0;
 let timerInterval = null;
 
 // Health check on load
+let graphAvailable = false;
 fetch('/health').then(r => r.json()).then(h => {
   const badge = $('#mode-badge');
-  if (h.graph) {
+  graphAvailable = !!h.graph;
+  if (graphAvailable) {
     badge.textContent = 'LIVE';
     badge.className = 'mode-badge mode-real';
     $('#status').textContent = 'graph ready';
+    // Toggle defaults to demo even when live
+    $('#toggle-text').textContent = 'Demo simulation (toggle off for live inference)';
   } else {
     badge.textContent = 'DEMO';
     badge.className = 'mode-badge mode-demo';
     $('#status').textContent = 'demo mode';
     out.textContent = 'AEGIS graph not loaded. Running in demo simulation mode.\n\nSet GOOGLE_API_KEY in Vercel and redeploy for live inference.';
+    // No toggle when no graph
+    $('#demo-toggle').checked = true;
+    $('#demo-toggle').disabled = true;
+    $('#toggle-text').textContent = 'Demo only (no graph loaded)';
   }
 }).catch(() => {
   $('#mode-badge').textContent = 'OFFLINE';
   $('#status').textContent = 'API unreachable';
 });
+
+// Toggle handler
+$('#demo-toggle').onchange = function() {
+  const on = this.checked;
+  const badge = $('#mode-badge');
+  if (graphAvailable) {
+    badge.textContent = on ? 'DEMO' : 'LIVE';
+    badge.className = 'mode-badge ' + (on ? 'mode-demo' : 'mode-real');
+    $('#toggle-text').textContent = on ? 'Demo simulation (toggle off for live inference)' : 'Live inference (uses API keys, may be slow)';
+    $('#status').textContent = on ? 'demo mode' : 'live mode';
+  }
+};
 
 function initMermaid() {
   if (typeof mermaid !== 'undefined') {
@@ -603,7 +634,7 @@ async function runStream() {
     const res = await fetch('/stream', {
       method: 'POST',
       headers: {'content-type': 'application/json'},
-      body: JSON.stringify({input: task, thread_id: lastThread}),
+      body: JSON.stringify({input: task, thread_id: lastThread, force_demo: $('#demo-toggle').checked}),
       signal: controller.signal
     });
 
@@ -638,6 +669,13 @@ async function runStream() {
             stepCount++;
             $('#info-steps').textContent = stepCount;
             addStep(j.step, j.description || '');
+          }
+          if (j.confidence !== undefined) {
+            $('#info-conf').textContent = j.confidence + '%';
+          }
+          if (j.artifacts) {
+            artifactCount = j.artifacts.length;
+            $('#info-arts').textContent = artifactCount;
           }
           if (j.error) {
             out.textContent += '\n[error] ' + j.error;
