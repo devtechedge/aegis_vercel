@@ -380,6 +380,7 @@ async def ui():
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AEGIS v0.4.2</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23060a14'/><text x='16' y='23' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='700' font-size='20' fill='%2338bdf8'>A</text></svg>">
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -798,7 +799,7 @@ a:hover { color: #7dd3fc; text-decoration: underline; }
     </div>
 
     <div id="hitl-panel" class="hitl-box" style="display:none">
-      <strong>HITL:</strong> Approve code changes &amp; remediation?<br>
+      <strong>HITL:</strong> Approve code changes & remediation?<br>
       <button class="btn-approve" id="btn-approve" onclick="approveHITL(true)">Approve</button>
       <button class="btn-reject" id="btn-reject" onclick="approveHITL(false)">Reject</button>
       <span class="status-text" id="hitl-status"></span>
