@@ -6,6 +6,7 @@
 
 AEGIS takes a natural language operational request — _"Why is checkout latency spiking in us-east?"_ — and autonomously plans, delegates to specialist sub-agents, retrieves from hybrid knowledge bases, executes tools, hits human-in-the-loop gates, and posts a fully traced, evaluated, and auditable result.
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?logo=vercel)](https://aegis-api-two.vercel.app/ui)
 [![CI](https://img.shields.io/github/actions/workflow/status/devtechedge/aegis_vercel/ci.yml?branch=main)](https://github.com/devtechedge/aegis_vercel/actions)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)]()
@@ -26,12 +27,13 @@ Open [aegis-api-two.vercel.app/ui](https://aegis-api-two.vercel.app/ui) and clic
 - **Live info panel** — step count, confidence %, artifact count, and elapsed time update in real time
 - **LangSmith traces** — one-click link to the full trace for every run
 
-### UI Screenshots
+### Screenshots
 
-The `/ui` endpoint serves a single-page dashboard with:
-- Left panel: task input, Run/Stop controls, scrolling agent output, info chips
-- Right panel: animated Mermaid graph, execution path log, LangSmith link
-- HITL approval panel slides in when the Coder requests human review
+![Live run with specialist streaming](docs/screenshots/01-live-run-streaming.png)
+
+![Demo mode HITL approval gate](docs/screenshots/02-demo-hitl-gate.png)
+
+![Demo completed with confidence chips](docs/screenshots/03-demo-completed.png)
 
 ---
 
