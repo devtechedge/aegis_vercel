@@ -1,6 +1,6 @@
-# Vercel Deploy Notes – AEGIS v0.2.1
+# Vercel Deploy Notes – AEGIS v0.4.2
 
-Live: https://aegis-api-two.vercel.app
+Live: https://aegis-agent-api.vercel.app/ui
 
 **Vercel Project Settings**
 - Framework Preset: FastAPI
@@ -32,10 +32,11 @@ With `OPENAI_API_KEY + LANGCHAIN_API_KEY`: full Supervisor + 6 agents, LangSmith
 - `/` – status
 - `/health` – health
 - `/docs` – Swagger
+- `/ui` – live dashboard
 - `/invoke` – POST {"input":"...","thread_id":"..."}
 - `/stream` – SSE streaming
 - `/threads/{id}/resume` – HITL approve
-- `/aegis/playground` – LangServe
+- `/threads/{id}/resume/stream` – HITL resume SSE
 
 **Why packages live in `apps/api/packages/`**
 Vercel only bundles Root Directory. Canonical code is `apps/api/packages/`, repo-root `packages -> apps/api/packages` symlink keeps local/docker imports working.

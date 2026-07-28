@@ -2,11 +2,11 @@
 
 **A self-hosted, auditable alternative to Glean + Devin + PagerDuty Autopilot, built 100% on LangChain.**
 
-> **Try it live:** [aegis-api-two.vercel.app/ui](https://aegis-api-two.vercel.app/ui) — toggle between Demo and Live inference, watch the LangGraph supervisor route specialists in real time, and approve/reject HITL gates.
+> **Try it live:** [aegis-agent-api.vercel.app/ui](https://aegis-agent-api.vercel.app/ui) — toggle between Demo and Live inference, watch the LangGraph supervisor route specialists in real time, and approve/reject HITL gates.
 
 AEGIS takes a natural language operational request — _"Why is checkout latency spiking in us-east?"_ — and autonomously plans, delegates to specialist sub-agents, retrieves from hybrid knowledge bases, executes tools, hits human-in-the-loop gates, and posts a fully traced, evaluated, and auditable result.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?logo=vercel)](https://aegis-api-two.vercel.app/ui)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?logo=vercel)](https://aegis-agent-api.vercel.app/ui)
 [![CI](https://img.shields.io/github/actions/workflow/status/devtechedge/aegis_vercel/ci.yml?branch=main)](https://github.com/devtechedge/aegis_vercel/actions)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)]()
@@ -16,7 +16,7 @@ AEGIS takes a natural language operational request — _"Why is checkout latency
 
 ## Live Demo
 
-Open [aegis-api-two.vercel.app/ui](https://aegis-api-two.vercel.app/ui) and click **Run AEGIS**.
+Open [aegis-agent-api.vercel.app/ui](https://aegis-agent-api.vercel.app/ui) and click **Run AEGIS**.
 
 **What you'll see:**
 
