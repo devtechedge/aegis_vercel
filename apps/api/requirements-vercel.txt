@@ -5,7 +5,7 @@ fastapi>=0.115
 uvicorn[standard]>=0.30
 pydantic>=2.7
 python-dotenv>=1.0
-sse-starlette>=2.1
+sse-starlette>=3.4.8
 
 langchain-core>=0.3.0
 langchain>=0.3.0
