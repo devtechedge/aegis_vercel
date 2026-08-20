@@ -19,7 +19,7 @@ langserve>=0.3.0
 pgvector>=0.3.0
 psycopg[binary,pool]>=3.1
 faiss-cpu>=1.8
-redis>=5.0
+redis>=8.1.0
 
 # Tools
 tavily-python>=0.5
