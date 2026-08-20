@@ -11,6 +11,7 @@ AEGIS takes a natural language operational request — _"Why is checkout latency
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)]()
 [![LangChain](https://img.shields.io/badge/LangChain-0.3-orange)]()
+[![Security](https://img.shields.io/badge/Security-threat%20model-informational)](SECURITY.md)
 
 ---
 
@@ -34,6 +35,8 @@ Open [aegis-agent-api.vercel.app/ui](https://aegis-agent-api.vercel.app/ui) and 
 ![Demo mode HITL approval gate](docs/screenshots/02-demo-hitl-gate.png)
 
 ![Demo completed with confidence chips](docs/screenshots/03-demo-completed.png)
+
+Public demo threat model: [SECURITY.md](SECURITY.md). `/invoke`, `/stream`, and HITL resume are unauthenticated by design — accepted residual risk for this portfolio deploy.
 
 ---
 
@@ -146,7 +149,9 @@ aegis/
 python scripts/run_evals.py
 ```
 
-Generates `evals/reports/latest.md`. CI fails if faithfulness < 0.82.
+Writes `evals/reports/latest.md`. Public CI has no `LANGCHAIN_API_KEY`, so that job writes a **mock** report and exits 0 — it does not measure live LangSmith faithfulness. With the key set, datasets `aegis_rag_qa`, `aegis_tool_use`, and `aegis_incident_triage` run against project `aegis-production`; the intended production threshold is faithfulness ≥ 0.82.
+
+CI itself fails on ruff (real errors), mypy on tools/evals/tests, and pytest (graph compile, RAG loop, tool guards, `/health` `/ui` `/stream` smokes). `pip-audit` is informational and does not fail the job on LangChain majors.
 
 ## Environment Variables
 
