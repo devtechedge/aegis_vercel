@@ -13,6 +13,12 @@ if ROOT not in sys.path:
 
 VERSION = "0.4.2"
 
+
+def _sse(payload: dict) -> str:
+    """Encode one SSE data frame without py3.11 f-string backslash bans."""
+    return "data: " + json.dumps(payload) + "\n\n"
+
+
 app = FastAPI(title="AEGIS API", version=VERSION, description="Autonomous Enterprise Graph Intelligence System")
 
 app.add_middleware(
@@ -150,7 +156,7 @@ async def resume_thread_stream(thread_id: str, req: ResumeRequest):
     """
     async def gen():
         if not req.approved:
-            yield f"data: {json.dumps({'token': '\n[REJECTED] Investigation halted per human decision.\n'})}\n\n"
+            yield _sse({"token": "\n[REJECTED] Investigation halted per human decision.\n"})
             yield "data: [DONE]\n\n"
             return
 
@@ -162,34 +168,42 @@ async def resume_thread_stream(thread_id: str, req: ResumeRequest):
             # HITL was on the last node (e.g. communicator/slack_post) —
             # just confirm approval and show final metrics.
             await asyncio.sleep(0.3)
-            yield f"data: {json.dumps({'token': '\n[RESUMED] Human approval confirmed. Action executed.\n'})}\n\n"
-            yield f"data: {json.dumps({'confidence': 91, 'artifacts': ['rca.md', 'patch.diff', 'incident_report.md', 'postmortem.md']})}\n\n"
+            yield _sse({"token": "\n[RESUMED] Human approval confirmed. Action executed.\n"})
+            yield _sse({"confidence": 91, "artifacts": ["rca.md", "patch.diff", "incident_report.md", "postmortem.md"]})
             yield "data: [DONE]\n\n"
             return
 
         await asyncio.sleep(0.5)
 
         if need_evaluator:
-            yield f"data: {json.dumps({'step': 'evaluator', 'description': DESCRIPTORS['evaluator']})}\n\n"
+            yield _sse({"step": "evaluator", "description": DESCRIPTORS["evaluator"]})
             await asyncio.sleep(0.8)
-            yield f"data: {json.dumps({'token': '[EVALUATOR] Evaluator scoring output quality and verifying against SLOs\n\n'
-                '  Quality Score: 91/100\n'
-                '  SLO Compliance: PASS - all latency, error-rate and availability checks within thresholds\n'
-                '  Patch Validation: Code changes verified against staging environment\n'
-                '  Confidence: 91%\n\n'})}\n\n"
+            yield _sse({
+                "token": (
+                    "[EVALUATOR] Evaluator scoring output quality and verifying against SLOs\n\n"
+                    "  Quality Score: 91/100\n"
+                    "  SLO Compliance: PASS - all latency, error-rate and availability checks within thresholds\n"
+                    "  Patch Validation: Code changes verified against staging environment\n"
+                    "  Confidence: 91%\n\n"
+                )
+            })
             await asyncio.sleep(0.4)
 
         if need_comms:
-            yield f"data: {json.dumps({'step': 'communicator', 'description': DESCRIPTORS['communicator']})}\n\n"
+            yield _sse({"step": "communicator", "description": DESCRIPTORS["communicator"]})
             await asyncio.sleep(0.8)
-            yield f"data: {json.dumps({'token': '[COMMUNICATOR] Communicator composing final summary and incident report\n\n'
-                '  Final incident report generated and distributed to stakeholders.\n'
-                '  Slack notification sent to #incidents with RCA summary.\n'
-                '  Runbook updated with new checkout_latency findings.\n'
-                '  Post-mortem scheduled for tomorrow 10:00 UTC.\n\n'})}\n\n"
+            yield _sse({
+                "token": (
+                    "[COMMUNICATOR] Communicator composing final summary and incident report\n\n"
+                    "  Final incident report generated and distributed to stakeholders.\n"
+                    "  Slack notification sent to #incidents with RCA summary.\n"
+                    "  Runbook updated with new checkout_latency findings.\n"
+                    "  Post-mortem scheduled for tomorrow 10:00 UTC.\n\n"
+                )
+            })
 
         # Final metrics
-        yield f"data: {json.dumps({'confidence': 91, 'artifacts': ['rca.md', 'patch.diff', 'incident_report.md', 'postmortem.md']})}\n\n"
+        yield _sse({"confidence": 91, "artifacts": ["rca.md", "patch.diff", "incident_report.md", "postmortem.md"]})
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(gen(), media_type="text/event-stream")
@@ -345,7 +359,7 @@ def _real_event_gen(task: str, thread_id: str):
                         h = hash(text)
                         if h not in seen:
                             seen.add(h)
-                            yield f"data: {json.dumps({'token': text + '\n\n'})}\n\n"
+                            yield _sse({"token": text + "\n\n"})
                     if update.get("needs_human_approval"):
                         yield f"data: {json.dumps({'step': 'hitl', 'description': 'HITL interrupt - awaiting human approval'})}\n\n"
         except Exception as e:
