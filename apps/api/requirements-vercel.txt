@@ -19,7 +19,7 @@ langchain-anthropic>=0.2.0
 langchain-google-genai>=2.0.0
 
 # Tools
-tavily-python>=0.5
+tavily-python>=0.7.27
 httpx>=0.27
 
 # --- Heavy deps – omitted on Vercel, graceful fallbacks enabled ---
