@@ -1,0 +1,29 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /apps/api
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+    groups:
+      python-patch:
+        update-types:
+          - patch
+          - minor
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
