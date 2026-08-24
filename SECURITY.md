@@ -20,7 +20,7 @@
 | Payments / PII | **N/A** | No payments, no user accounts, no PII store. |
 | Eval gate | **Honest mock** | Public CI has no `LANGCHAIN_API_KEY`. `scripts/run_evals.py` writes a **mock** faithfulness report. Do not read CI “≥ 0.82” as a live LangSmith score. |
 
-**Overall (public Vercel demo):** Low residual risk for a recruiter demo — mock tools, no user data, same-origin dashboard.
+**Overall (public Vercel demo):** Low residual risk for a public demo — mock tools, no user data, same-origin dashboard.
 
 **Overall (if this were an internal ops copilot with live GitHub / Slack / SQL / email):** High — unauthenticated invoke + HITL resume, restricted-but-real `exec`, CORS `*`. Do **not** claim production auth, JWT, or a hardened code sandbox.
 
@@ -86,7 +86,7 @@ allow_origins=["*"]
 allow_credentials=True
 ```
 
-Browsers will not send credentials with a `*` origin. Same-origin `/ui` does not need CORS. Left as-is so a recruiter can `fetch` `/stream` from another origin during a take-home clone. Tighten to the production alias if this API is ever put behind a private UI.
+Browsers will not send credentials with a `*` origin. Same-origin `/ui` does not need CORS. Left as-is so a visitor can `fetch` `/stream` from another origin during a take-home clone. Tighten to the production alias if this API is ever put behind a private UI.
 
 ---
 
@@ -111,7 +111,7 @@ Never commit `LANGCHAIN_API_KEY`, LLM keys, or database passwords.
 | `/ui` | None | Live dashboard |
 | `/docs` | None | OpenAPI playground |
 | `POST /invoke` | None | Runs the graph or returns mock |
-| `POST /stream` | None | SSE; `force_demo=true` is the recruiter path |
+| `POST /stream` | None | SSE; `force_demo=true` is the public demo path |
 | `POST /threads/{id}/resume` | None | HITL resume |
 | `POST /threads/{id}/resume/stream` | None | Post-HITL SSE simulation (Vercel) |
 | `/fleet/*` | None | Stub list of bots |
