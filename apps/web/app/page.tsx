@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { ThemeToggle } from './theme-toggle'
 export default function Page(){
   const [input,setInput] = useState('Investigate checkout latency spike in us-east')
   const [output,setOutput] = useState('')
@@ -14,13 +15,18 @@ export default function Page(){
     setLoading(false)
   }
   return (
-    <main style={{fontFamily:'system-ui', maxWidth:780, margin:'40px auto', padding:20}}>
-      <h1>AEGIS — Autonomous Enterprise Graph Intelligence</h1>
-      <p>Multi-agent operations cortex — LangGraph Supervisor + 6 specialists</p>
-      <textarea value={input} onChange={e=>setInput(e.target.value)} style={{width:'100%', height:80}}/>
-      <button onClick={run} disabled={loading} style={{padding:'10px 18px', marginTop:8}}>{loading?'Running…':'Run AEGIS'}</button>
-      <pre style={{whiteSpace:'pre-wrap', background:'#f6f6f6', padding:16, marginTop:16, minHeight:120}}>{output || 'Output will stream here…'}</pre>
-      <p style={{fontSize:13, color:'#666'}}>API: <a href={api+'/docs'}>{api}/docs</a> — HITL: POST /threads/{'{id}'}/resume</p>
+    <main className="shell">
+      <header className="page-header">
+        <div>
+          <h1>AEGIS — Autonomous Enterprise Graph Intelligence</h1>
+          <p>Multi-agent operations cortex — LangGraph Supervisor + 6 specialists</p>
+        </div>
+        <ThemeToggle />
+      </header>
+      <textarea value={input} onChange={e=>setInput(e.target.value)} />
+      <button className="run" onClick={run} disabled={loading}>{loading?'Running…':'Run AEGIS'}</button>
+      <pre className="out">{output || 'Output will stream here…'}</pre>
+      <p className="meta">API: <a href={api+'/docs'}>{api}/docs</a> — HITL: POST /threads/{'{id}'}/resume</p>
     </main>
   )
 }

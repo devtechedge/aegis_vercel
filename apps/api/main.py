@@ -392,6 +392,7 @@ async def ui():
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>(function(){try{var k="aegis-theme";var t=localStorage.getItem(k);if(t!=="light"&&t!=="dark")t="dark";var r=document.documentElement;r.setAttribute("data-theme",t);r.style.colorScheme=t;if(t==="dark")r.classList.add("dark");else r.classList.remove("dark");}catch(e){document.documentElement.setAttribute("data-theme","dark");}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AEGIS v0.4.2</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23060a14'/><text x='16' y='23' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='700' font-size='20' fill='%2338bdf8'>A</text></svg>">
@@ -399,7 +400,8 @@ async def ui():
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-:root {
+:root,
+[data-theme="dark"] {
   --bg-deep: #06080e;
   --bg-panel: #0c1220;
   --bg-input: #0a0f1c;
@@ -415,6 +417,26 @@ async def ui():
   --amber: #fbbf24;
   --radius: 14px;
 }
+
+[data-theme="light"] {
+  --bg-deep: #f3f5fa;
+  --bg-panel: #ffffff;
+  --bg-input: #eef1f7;
+  --border: #d5dce8;
+  --border-glow: #b7c6dc;
+  --text: #0f172a;
+  --text-muted: #5b6b82;
+  --accent: #0284c7;
+  --accent-glow: rgba(2,132,199,0.18);
+  --green: #059669;
+  --green-glow: rgba(5,150,105,0.18);
+  --red: #dc2626;
+  --amber: #d97706;
+  --radius: 14px;
+}
+
+html { color-scheme: dark; }
+html[data-theme="light"] { color-scheme: light; }
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -498,6 +520,7 @@ body::before {
   gap: 14px;
   margin-bottom: 6px;
 }
+.header-row .theme-toggle { margin-left: auto; }
 
 h1 {
   font-size: 28px;
@@ -553,7 +576,7 @@ h1 {
   position: absolute;
   cursor: pointer;
   inset: 0;
-  background: #1a2540;
+  background: var(--border);
   border-radius: 26px;
   transition: all 0.3s ease;
   border: 1px solid var(--border);
@@ -636,7 +659,7 @@ button:disabled {
 }
 
 .btn-stop {
-  background: #1a2540;
+  background: var(--border);
   color: var(--text-muted);
   border: 1px solid var(--border);
 }
@@ -663,7 +686,7 @@ button:disabled {
   overflow-y: auto;
   font-size: 15px;
   line-height: 1.65;
-  color: #c8d3e6;
+  color: var(--text);
 }
 
 /* ── Info Chips ── */
@@ -763,12 +786,12 @@ a {
   font-size: 14px;
   transition: color 0.2s;
 }
-a:hover { color: #7dd3fc; text-decoration: underline; }
+a:hover { color: var(--accent); text-decoration: underline; }
 
 .expected-path {
   margin-top: 12px;
   font-size: 13px;
-  color: #4a5578;
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
@@ -812,6 +835,23 @@ a:hover { color: #7dd3fc; text-decoration: underline; }
     background-color: color-mix(in oklab, currentColor 52%, transparent);
   }
 }
+
+button.theme-toggle {
+  width: 36px; height: 36px; padding: 0; flex: 0 0 36px;
+  display: grid; place-items: center; position: relative;
+  border-radius: 8px; cursor: pointer; border: 0;
+  background: transparent; color: inherit;
+  box-shadow: 0 0 0 1px color-mix(in oklab, currentColor 18%, transparent);
+  overflow: visible;
+}
+button.theme-toggle .icon {
+  grid-area: 1 / 1; display: grid; place-items: center;
+  transition: opacity 300ms cubic-bezier(0.2,0,0,1), transform 300ms cubic-bezier(0.2,0,0,1), filter 300ms cubic-bezier(0.2,0,0,1);
+}
+button.theme-toggle .icon-sun { opacity: 1; transform: scale(1); filter: blur(0); }
+button.theme-toggle .icon-moon { opacity: 0; transform: scale(0.25); filter: blur(4px); }
+html[data-theme="light"] button.theme-toggle .icon-moon { opacity: 1; transform: scale(1); filter: blur(0); }
+html[data-theme="light"] button.theme-toggle .icon-sun { opacity: 0; transform: scale(0.25); filter: blur(4px); }
 </style>
 </head>
 <body>
@@ -822,6 +862,14 @@ a:hover { color: #7dd3fc; text-decoration: underline; }
       <div class="header-row">
         <h1>AEGIS v0.4.2</h1>
         <span id="mode-badge" class="mode-badge mode-demo">checking...</span>
+        <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch to light mode" title="Light mode">
+          <span class="icon icon-moon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 14.3A9 9 0 1 1 9.7 3 7 7 0 0 0 21 14.3z"/></svg>
+          </span>
+          <span class="icon icon-sun" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          </span>
+        </button>
       </div>
       <div class="toggle-row">
         <span class="toggle-label">Demo</span>
@@ -882,6 +930,31 @@ let startTime = 0;
 let timerInterval = null;
 let graphAvailable = false;
 let isDemoMode = true;
+
+(function(){
+  var k = "aegis-theme";
+  var btn = document.getElementById("theme-toggle");
+  function apply(t) {
+    var r = document.documentElement;
+    r.setAttribute("data-theme", t);
+    r.style.colorScheme = t;
+    if (t === "dark") r.classList.add("dark");
+    else r.classList.remove("dark");
+    if (btn) {
+      btn.setAttribute("aria-label", t === "dark" ? "Switch to light mode" : "Switch to dark mode");
+      btn.title = t === "dark" ? "Light mode" : "Dark mode";
+    }
+  }
+  if (btn) {
+    btn.addEventListener("click", function() {
+      var next = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
+      try { localStorage.setItem(k, next); } catch (e) {}
+      apply(next);
+    });
+    var initial = document.documentElement.getAttribute("data-theme");
+    apply(initial === "light" || initial === "dark" ? initial : "dark");
+  }
+})();
 
 // ── Health check ──
 fetch('/health').then(r => r.json()).then(h => {
