@@ -664,12 +664,7 @@ button:disabled {
   font-size: 15px;
   line-height: 1.65;
   color: #c8d3e6;
-  scrollbar-width: thin;
-  scrollbar-color: #1a2540 transparent;
 }
-#out::-webkit-scrollbar { width: 6px; }
-#out::-webkit-scrollbar-track { background: transparent; }
-#out::-webkit-scrollbar-thumb { background: #1a2540; border-radius: 3px; }
 
 /* ── Info Chips ── */
 .info-bar {
@@ -760,8 +755,6 @@ h3 {
   overflow-y: auto;
   white-space: pre-line;
   line-height: 1.5;
-  scrollbar-width: thin;
-  scrollbar-color: #1a2540 transparent;
 }
 
 a {
@@ -777,6 +770,47 @@ a:hover { color: #7dd3fc; text-decoration: underline; }
   font-size: 13px;
   color: #4a5578;
   line-height: 1.5;
+}
+
+/* Overlay hover-reveal scrollbars: invisible until the pointer is over that pane. */
+@media (hover: hover) and (pointer: fine) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+  *:not(html):not(body):hover,
+  *:not(html):not(body):focus,
+  *:not(html):not(body):focus-within {
+    scrollbar-color: color-mix(in oklab, currentColor 32%, transparent) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    background: transparent;
+  }
+  *::-webkit-scrollbar-track,
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  *:not(html):not(body):hover::-webkit-scrollbar-thumb,
+  *:not(html):not(body):focus::-webkit-scrollbar-thumb,
+  *:not(html):not(body):focus-within::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklab, currentColor 32%, transparent);
+  }
+  *:not(html):not(body):hover::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in oklab, currentColor 52%, transparent);
+  }
 }
 </style>
 </head>
