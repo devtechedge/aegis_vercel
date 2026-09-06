@@ -22,16 +22,27 @@ def code_executor(code: str, language: str = "python") -> str:
     """Execute code in a sandbox. Read-only safe."""
     if language != "python":
         return "Only python supported in lite mode."
-    # Very restricted exec for Vercel
+    if not isinstance(code, str) or len(code) > 1500:
+        return "SECURITY_BLOCKED: code too long or invalid"
+    lowered = code.lower()
+    banned = (
+        "import ", "__", "open(", "exec(", "eval(", "compile(",
+        "globals(", "locals(", "getattr(", "setattr(", "delattr(",
+        "breakpoint(", "input(", "os.", "sys.", "subprocess",
+        "builtins", "memoryview", "bytearray", "help(",
+    )
+    if any(b in lowered for b in banned):
+        return "SECURITY_BLOCKED: disallowed token in code"
+    # Very restricted exec for Vercel — residual: not a real sandbox (no gVisor/E2B)
     try:
         import io, contextlib
         buf = io.StringIO()
-        safe_globals = {"__builtins__": {"print": print, "range": range, "len": len, "sum": sum}}
+        safe_builtins = {"print": print, "range": range, "len": len, "sum": sum, "min": min, "max": max, "abs": abs}
         with contextlib.redirect_stdout(buf):
-            exec(code, safe_globals, {})
+            exec(code, {"__builtins__": safe_builtins}, {})  # noqa: S102 — intentional demo sandbox
         return buf.getvalue()[:2000] or "Executed with no output."
     except Exception as e:
-        return f"CodeExecutor error: {e}"
+        return f"CodeExecutor error: {type(e).__name__}"
 
 @tool
 def postgres_sql_toolkit(query: str) -> str:

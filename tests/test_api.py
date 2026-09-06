@@ -77,3 +77,22 @@ def test_invoke_mock_or_graph_without_auth():
     assert r.status_code == 200
     body = r.json()
     assert "thread_id" in body or "output" in body or "error" in body or "interrupted" in body
+
+
+def test_debug_gated_by_default():
+    r = client.get("/debug")
+    assert r.status_code == 404
+
+
+def test_health_reports_live_mode_flag():
+    r = client.get("/health")
+    assert r.status_code == 200
+    assert "live_mode" in r.json()
+    assert r.json()["live_mode"] is False
+
+
+def test_ui_sets_security_headers():
+    r = client.get("/ui")
+    assert r.status_code == 200
+    assert r.headers.get("x-content-type-options") == "nosniff"
+    assert r.headers.get("x-frame-options") == "DENY"
