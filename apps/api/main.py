@@ -3,9 +3,18 @@ import sys
 import json
 import time
 import asyncio
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+
+from security_hardening import (
+    SecurityHeadersMiddleware,
+    cors_origins,
+    debug_enabled,
+    live_mode_enabled,
+    rate_limit_invoke,
+    require_run_token_if_configured,
+)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if ROOT not in sys.path:
@@ -21,13 +30,15 @@ def _sse(payload: dict) -> str:
 
 app = FastAPI(title="AEGIS API", version=VERSION, description="Autonomous Enterprise Graph Intelligence System")
 
+_origins = cors_origins()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "x-run-token", "Authorization"],
 )
+app.add_middleware(SecurityHeadersMiddleware)
 
 graph = None
 graph_load_error = None
@@ -76,6 +87,7 @@ def health():
         "version": VERSION,
         "graph": bool(graph),
         "graph_error": graph_load_error,
+        "live_mode": live_mode_enabled(),
         "llm_keys": {
             "google": bool(os.getenv("GOOGLE_API_KEY")),
             "openai": bool(os.getenv("OPENAI_API_KEY")),
@@ -87,18 +99,26 @@ def health():
 
 @app.get("/debug")
 def debug():
+    if not debug_enabled():
+        return JSONResponse({"detail": "Not found"}, status_code=404)
     return {
         "graph_loaded": bool(graph),
         "graph_error": graph_load_error,
         "python": sys.version,
         "cwd": os.getcwd(),
+        "live_mode": live_mode_enabled(),
     }
 
 
 @app.post("/invoke")
-async def invoke(req: InvokeRequest):
-    if not graph:
-        return {"output": f"[mock] {req.input}", "mock": True, "graph_error": graph_load_error}
+async def invoke(
+    req: InvokeRequest,
+    request: Request,
+    _rl: None = Depends(rate_limit_invoke),
+    _tok: None = Depends(require_run_token_if_configured),
+):
+    if not live_mode_enabled() or req.force_demo or not graph:
+        return {"output": f"[mock] {req.input}", "mock": True, "graph_error": graph_load_error, "live_mode": False}
     from langchain_core.messages import HumanMessage
     config = {"configurable": {"thread_id": req.thread_id}}
     try:
@@ -123,9 +143,15 @@ async def invoke(req: InvokeRequest):
 
 
 @app.post("/threads/{thread_id}/resume")
-async def resume_thread(thread_id: str, req: ResumeRequest):
-    if not graph:
-        return {"thread_id": thread_id, "resumed": False, "error": "Graph not loaded"}
+async def resume_thread(
+    thread_id: str,
+    req: ResumeRequest,
+    request: Request,
+    _rl: None = Depends(rate_limit_invoke),
+    _tok: None = Depends(require_run_token_if_configured),
+):
+    if not live_mode_enabled() or not graph:
+        return {"thread_id": thread_id, "resumed": False, "error": "Graph not loaded or LIVE_MODE off", "mock": True}
     try:
         from langgraph.types import Command
         config = {"configurable": {"thread_id": thread_id}}
@@ -145,7 +171,13 @@ async def resume_thread(thread_id: str, req: ResumeRequest):
 
 
 @app.post("/threads/{thread_id}/resume/stream")
-async def resume_thread_stream(thread_id: str, req: ResumeRequest):
+async def resume_thread_stream(
+    thread_id: str,
+    req: ResumeRequest,
+    request: Request,
+    _rl: None = Depends(rate_limit_invoke),
+    _tok: None = Depends(require_run_token_if_configured),
+):
     """SSE streaming resume — emits post-HITL evaluator/communicator flow.
 
     On Vercel serverless, in-memory LangGraph checkpoints (MemorySaver) are
@@ -375,8 +407,14 @@ def _real_event_gen(task: str, thread_id: str):
 
 
 @app.post("/stream")
-async def stream(req: InvokeRequest):
-    if not graph or req.force_demo:
+async def stream(
+    req: InvokeRequest,
+    request: Request,
+    _rl: None = Depends(rate_limit_invoke),
+    _tok: None = Depends(require_run_token_if_configured),
+):
+    # Default: demo/sim. Live graph only when LIVE_MODE + keys + graph + not force_demo.
+    if (not live_mode_enabled()) or (not graph) or req.force_demo:
         return StreamingResponse(_demo_event_gen(), media_type="text/event-stream")
     return StreamingResponse(
         _real_event_gen(req.input, req.thread_id),
@@ -958,7 +996,7 @@ let isDemoMode = true;
 
 // ── Health check ──
 fetch('/health').then(r => r.json()).then(h => {
-  graphAvailable = !!h.graph;
+  graphAvailable = !!h.graph && !!h.live_mode;
   const badge = $('#mode-badge');
   const toggle = $('#demo-toggle');
   if (graphAvailable) {
@@ -971,7 +1009,7 @@ fetch('/health').then(r => r.json()).then(h => {
     toggle.disabled = true;
     $('#toggle-text').textContent = 'Live inference';
     $('#status').textContent = 'demo mode';
-    out.textContent = 'AEGIS graph not loaded. Running in demo simulation mode.\n\nSet GOOGLE_API_KEY in Vercel and redeploy for live inference.';
+    out.textContent = 'AEGIS running in demo simulation mode.\n\nLive inference requires LIVE_MODE=true plus an LLM key on the server.';
     isDemoMode = true;
   }
 }).catch(() => {

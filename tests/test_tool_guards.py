@@ -50,7 +50,9 @@ def test_code_executor_restricted_builtins():
     result = code_executor.invoke({"code": "print(sum(range(5)))", "language": "python"})
     assert "10" in result
     blocked = code_executor.invoke({"code": "open('/etc/passwd')", "language": "python"})
-    assert "error" in blocked.lower() or "Error" in blocked
+    assert "SECURITY_BLOCKED" in blocked
+    banned_import = code_executor.invoke({"code": "import os", "language": "python"})
+    assert "SECURITY_BLOCKED" in banned_import
 
 
 def test_github_pr_is_hitl_gated():

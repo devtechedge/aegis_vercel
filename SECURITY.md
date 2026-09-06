@@ -1,8 +1,10 @@
 # Security Assessment — AEGIS (aegis_vercel)
 
-**Date:** 2026-08-21  
+**Date:** 2026-09-06  
 **Scope:** Auth, XSS, injection, CORS, secrets, tool execution, HITL, evals  
 **Context:** Public deploy is a **portfolio demo** of a LangGraph supervisor + 6 specialists. Live UI: [aegis-agent-api.vercel.app/ui](https://aegis-agent-api.vercel.app/ui). Vercel project `aegis-api`, Root Directory `apps/api`.
+
+Repos stay **public until deliberately made private**. Honest demo threat model — **not** a bank-grade guarantee.
 
 ---
 
@@ -10,12 +12,13 @@
 
 | Area | Risk | Notes |
 |------|------|--------|
-| Authentication | **None (accepted)** | `/invoke`, `/stream`, `/threads/{id}/resume` are public. No API key, JWT, or session. |
+| Authentication | **Optional gate** | Demo/sim is public. With `LIVE_MODE=true` and `PUBLIC_RUN_TOKEN`, invoke/stream/resume require `x-run-token`. |
 | Authorization | **None (accepted)** | HITL “approve” is an unauthenticated POST. Anyone who can hit the URL can resume a thread. |
 | XSS | **Low (demo UI)** | `/ui` is a server-rendered HTMLResponse. User task text is written into the output pane via `textContent` (escaped). Mermaid SVG is rendered from a fixed template, not from raw user HTML. |
 | Injection (SQL) | **Low** | Live Vercel path mocks SQL. Write verbs (`INSERT`/`UPDATE`/`DELETE`/`DROP`/`ALTER`) return `WRITE_BLOCKED`. |
-| Code execution | **Demo residual** | `code_executor` runs restricted `exec()` with a tiny `__builtins__` allow-list. Not a production sandbox (not E2B / gVisor). |
-| CORS | **Demo residual** | `allow_origins=["*"]` with `allow_credentials=True` (spec-invalid combo; browsers ignore credentials on `*`). Dashboard is same-origin so CORS rarely applies. |
+| Code execution | **Demo residual** | `code_executor` bans imports/dunders/`open`/`eval` plus tiny builtins. Not a production sandbox (not E2B / gVisor). |
+| Rate limits | **Best-effort** | In-memory per-IP on invoke/stream/resume; resets per serverless instance. |
+| CORS | **Hardened** | Explicit allowlist from `CORS_ORIGINS` (default: Vercel origin + localhost). No `*` with credentials. |
 | Secrets in repo | **Low** | `.env` gitignored. `.env.example` has empty placeholders only. |
 | Payments / PII | **N/A** | No payments, no user accounts, no PII store. |
 | Eval gate | **Honest mock** | Public CI has no `LANGCHAIN_API_KEY`. `scripts/run_evals.py` writes a **mock** faithfulness report. Do not read CI “≥ 0.82” as a live LangSmith score. |
@@ -28,14 +31,14 @@
 
 ## 1. Authentication
 
-**Findings**
-- FastAPI app in `apps/api/main.py` has no `Depends`, no bearer header, no cookie session.
-- `/health` reports whether LLM keys are *present* (booleans only — not the secret values).
-- `/debug` exposes Python version and cwd. Fine for a demo; strip it before any private deploy.
+**Controls (2026-09-06)**
+- `LIVE_MODE` (default off): live LangGraph/LLM only when true **and** an LLM key is present; otherwise force demo/sim.
+- `PUBLIC_RUN_TOKEN`: when set under live mode, require matching `x-run-token` on `/invoke`, `/stream`, resume.
+- `ENABLE_DEBUG` (default off): `/debug` returns 404 unless enabled.
+- `/health` reports key *presence* booleans + `live_mode` — never secret values.
+- In-memory per-IP rate limit on invoke/stream/resume (~20/min).
 
-**Verdict:** Unauthenticated public API. Accepted for the portfolio demo. Not accepted for a company-internal agent that can open PRs or send Slack.
-
-**If auth is added later:** edge middleware or FastAPI dependency (API key or OIDC), rate-limit `/invoke` and `/stream`, drop `/debug` from production.
+**Verdict:** Public demo/sim remains open (accepted). Live path is opt-in and optionally token-gated. Still not company IAM / OIDC.
 
 ---
 
@@ -62,7 +65,7 @@ Accepted for the demo. Not a SOC2 control.
 | `github_toolkit` | action block | `create_pr` / `branch` → `HITL_REQUIRED` |
 | `slack_toolkit` | action block | `post_message` → `HITL_REQUIRED` |
 | `send_email_tool` | always | `HITL_REQUIRED` |
-| `code_executor` | language + builtins | Non-Python refused; `exec` with `print`/`range`/`len`/`sum` only |
+| `code_executor` | language + token ban + builtins | Non-Python refused; bans import/dunder/open/eval; tiny builtins only |
 
 Covered by `tests/test_tool_guards.py`. These are string-level guards on mock tools, not a policy engine.
 
@@ -81,12 +84,13 @@ Covered by `tests/test_tool_guards.py`. These are string-level guards on mock to
 
 ## 5. CORS
 
-```python
-allow_origins=["*"]
-allow_credentials=True
-```
+Explicit allowlist via `CORS_ORIGINS` (comma-separated). Defaults:
 
-Browsers will not send credentials with a `*` origin. Same-origin `/ui` does not need CORS. Left as-is so a visitor can `fetch` `/stream` from another origin during a take-home clone. Tighten to the production alias if this API is ever put behind a private UI.
+- `https://aegis-agent-api.vercel.app`
+- `http://localhost:3000` / `http://127.0.0.1:3000`
+- `http://localhost:8000` / `http://127.0.0.1:8000`
+
+Credentials are enabled **only** with that allowlist — never `allow_origins=["*"]` with credentials. `/ui` security headers: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, CSP (jsDelivr Mermaid + inline scripts required by the single-file UI).
 
 ---
 
@@ -107,13 +111,13 @@ Never commit `LANGCHAIN_API_KEY`, LLM keys, or database passwords.
 |------|------|--------|
 | `/` | None | Status JSON |
 | `/health` | None | Graph + key-presence booleans |
-| `/debug` | None | Python version / cwd — demo only |
+| `/debug` | `ENABLE_DEBUG` | 404 by default |
 | `/ui` | None | Live dashboard |
 | `/docs` | None | OpenAPI playground |
-| `POST /invoke` | None | Runs the graph or returns mock |
-| `POST /stream` | None | SSE; `force_demo=true` is the public demo path |
-| `POST /threads/{id}/resume` | None | HITL resume |
-| `POST /threads/{id}/resume/stream` | None | Post-HITL SSE simulation (Vercel) |
+| `POST /invoke` | rate limit; optional live token | Mock unless `LIVE_MODE` |
+| `POST /stream` | rate limit; optional live token | Demo SSE by default |
+| `POST /threads/{id}/resume` | rate limit; optional live token | HITL resume |
+| `POST /threads/{id}/resume/stream` | rate limit; optional live token | Post-HITL SSE simulation (Vercel) |
 | `/fleet/*` | None | Stub list of bots |
 
 ---
@@ -139,12 +143,13 @@ Live LangSmith project: `aegis-production`. Real faithfulness is visible there w
 ## 10. Residual risk & acceptance
 
 **Accepted for portfolio demo**
-- No authentication on invoke / stream / HITL resume.
-- CORS `*`.
-- Restricted `exec` in `code_executor`.
+- Public demo/sim without auth (live path opt-in / optional token).
+- Best-effort in-memory rate limits (not shared across Vercel isolates).
+- Restricted `exec` in `code_executor` (still not a real sandbox).
 - Mock SQL / GitHub / Slack / FS tools on Vercel.
 - Mock eval report in public CI.
 - Leftover unused `apps/web` Next.js stub.
+- Public repo until flipped private.
 
 **Not accepted if this becomes an internal production copilot**
 - Unauthenticated `/invoke` that can reach live tools.
@@ -161,7 +166,7 @@ Live LangSmith project: `aegis-production`. Real faithfulness is visible there w
 python -m pip install -r apps/api/requirements.txt
 python -m pip install pytest ruff mypy
 PYTHONPATH=. pytest -q --tb=short
-ruff check tests packages apps/api/packages apps/api/main.py apps/api/routers scripts
+ruff check tests packages apps/api/packages apps/api/main.py apps/api/routers apps/api/security_hardening.py scripts
 mypy packages/tools packages/evals tests --ignore-missing-imports --follow-imports=skip
 PYTHONPATH=. python scripts/run_evals.py   # mock unless LANGCHAIN_API_KEY is set
 ```
