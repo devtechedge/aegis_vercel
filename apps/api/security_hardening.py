@@ -1,6 +1,6 @@
 """Demo-hardening helpers for the public AEGIS FastAPI surface.
 
-In-memory rate limits reset per serverless instance — residual, documented in SECURITY.md.
+In-memory rate limits reset per serverless instance - residual, documented in SECURITY.md.
 """
 from __future__ import annotations
 

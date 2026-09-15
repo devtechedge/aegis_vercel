@@ -26,7 +26,7 @@ def main() -> None:
         pathlib.Path("evals/reports").mkdir(parents=True, exist_ok=True)
         pathlib.Path("evals/reports/latest.md").write_text(report)
         print(report)
-        print("⚠️  LANGCHAIN_API_KEY not set — used mock eval report (CI-safe)")
+        print("⚠️  LANGCHAIN_API_KEY not set - used mock eval report (CI-safe)")
         return
 
     # Real LangSmith evaluation path

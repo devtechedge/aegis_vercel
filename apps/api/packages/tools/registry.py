@@ -33,13 +33,13 @@ def code_executor(code: str, language: str = "python") -> str:
     )
     if any(b in lowered for b in banned):
         return "SECURITY_BLOCKED: disallowed token in code"
-    # Very restricted exec for Vercel — residual: not a real sandbox (no gVisor/E2B)
+    # Very restricted exec for Vercel - residual: not a real sandbox (no gVisor/E2B)
     try:
         import io, contextlib
         buf = io.StringIO()
         safe_builtins = {"print": print, "range": range, "len": len, "sum": sum, "min": min, "max": max, "abs": abs}
         with contextlib.redirect_stdout(buf):
-            exec(code, {"__builtins__": safe_builtins}, {})  # noqa: S102 — intentional demo sandbox
+            exec(code, {"__builtins__": safe_builtins}, {})  # noqa: S102 - intentional demo sandbox
         return buf.getvalue()[:2000] or "Executed with no output."
     except Exception as e:
         return f"CodeExecutor error: {type(e).__name__}"
@@ -50,18 +50,18 @@ def postgres_sql_toolkit(query: str) -> str:
     if any(w in query.lower() for w in ["insert ", "update ", "delete ", "drop ", "alter "]):
         return "WRITE_BLOCKED: SQL write operations require human approval via HITL."
     # Mock for Vercel - real impl uses langchain-community SQLDatabase
-    return f"[SQL mock] Would execute (read-only): {query[:200]} — 12 rows returned."
+    return f"[SQL mock] Would execute (read-only): {query[:200]} - 12 rows returned."
 
 @tool
 def github_toolkit(action: str, repo: str = "devtechedge/aegis_vercel", path: str = "") -> str:
     """GitHub: list_prs, read_file, create_pr_branch - PR creation HITL gated."""
     if "create_pr" in action or "branch" in action:
         return "HITL_REQUIRED: PR creation needs human approval. Payload stored."
-    return f"[GitHub mock] action={action}, repo={repo}, path={path} — OK."
+    return f"[GitHub mock] action={action}, repo={repo}, path={path} - OK."
 
 @tool
 def slack_toolkit(action: str, channel: str = "#incidents", message: str = "") -> str:
-    """Slack: search_threads, post_message — post is HITL gated."""
+    """Slack: search_threads, post_message - post is HITL gated."""
     if action == "post_message":
         return "HITL_REQUIRED: Slack send needs approval."
     return f"[Slack mock] Found 2 related threads in {channel} about recent deploy."
@@ -69,7 +69,7 @@ def slack_toolkit(action: str, channel: str = "#incidents", message: str = "") -
 @tool
 def browser_tool(url: str) -> str:
     """Playwright async scrape - lite mock."""
-    return f"[Browser mock] Scraped {url} — title extracted, 850 chars."
+    return f"[Browser mock] Scraped {url} - title extracted, 850 chars."
 
 @tool
 def prometheus_metrics_tool(query: str) -> str:
@@ -103,7 +103,7 @@ def wikipedia_tool(query: str) -> str:
 
 @tool
 def send_email_tool(to: str, subject: str, body: str) -> str:
-    """Send email — ALWAYS HITL gated."""
+    """Send email - ALWAYS HITL gated."""
     return "HITL_REQUIRED: Email send needs human approval."
 
 @tool
@@ -116,7 +116,7 @@ def file_system_tool(path: str, action: str = "read") -> str:
     """Sandboxed file system."""
     if ".." in path or path.startswith("/etc"):
         return "SECURITY_BLOCKED"
-    return f"[FS mock] {action} {path} — OK, 1.2KB"
+    return f"[FS mock] {action} {path} - OK, 1.2KB"
 
 @tool
 def memory_search_tool(query: str) -> str:
@@ -134,7 +134,7 @@ def get_vectorstore_retriever_tool():
             docs = hybrid_retrieve(query)
             return "\n\n".join([d[:400] for d in docs[:3]]) or "No docs."
         except Exception as e:
-            return f"[RAG mock] docs for '{query}' — fallback. Err: {e}"
+            return f"[RAG mock] docs for '{query}' - fallback. Err: {e}"
     return vectorstore_retriever_tool
 
 ALL_TOOLS = [

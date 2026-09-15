@@ -1,10 +1,10 @@
-# Security Assessment — AEGIS (aegis_vercel)
+# Security Assessment - AEGIS (aegis_vercel)
 
 **Date:** 2026-09-06  
 **Scope:** Auth, XSS, injection, CORS, secrets, tool execution, HITL, evals  
 **Context:** Public deploy is a **portfolio demo** of a LangGraph supervisor + 6 specialists. Live UI: [aegis-agent-api.vercel.app/ui](https://aegis-agent-api.vercel.app/ui). Vercel project `aegis-api`, Root Directory `apps/api`.
 
-Repos stay **public until deliberately made private**. Honest demo threat model — **not** a bank-grade guarantee.
+Repos stay **public until deliberately made private**. Honest demo threat model - **not** a bank-grade guarantee.
 
 ---
 
@@ -23,9 +23,9 @@ Repos stay **public until deliberately made private**. Honest demo threat model 
 | Payments / PII | **N/A** | No payments, no user accounts, no PII store. |
 | Eval gate | **Honest mock** | Public CI has no `LANGCHAIN_API_KEY`. `scripts/run_evals.py` writes a **mock** faithfulness report. Do not read CI “≥ 0.82” as a live LangSmith score. |
 
-**Overall (public Vercel demo):** Low residual risk for a public demo — mock tools, no user data, same-origin dashboard.
+**Overall (public Vercel demo):** Low residual risk for a public demo - mock tools, no user data, same-origin dashboard.
 
-**Overall (if this were an internal ops copilot with live GitHub / Slack / SQL / email):** High — unauthenticated invoke + HITL resume, restricted-but-real `exec`, CORS `*`. Do **not** claim production auth, JWT, or a hardened code sandbox.
+**Overall (if this were an internal ops copilot with live GitHub / Slack / SQL / email):** High - unauthenticated invoke + HITL resume, restricted-but-real `exec`, CORS `*`. Do **not** claim production auth, JWT, or a hardened code sandbox.
 
 ---
 
@@ -35,7 +35,7 @@ Repos stay **public until deliberately made private**. Honest demo threat model 
 - `LIVE_MODE` (default off): live LangGraph/LLM only when true **and** an LLM key is present; otherwise force demo/sim.
 - `PUBLIC_RUN_TOKEN`: when set under live mode, require matching `x-run-token` on `/invoke`, `/stream`, resume.
 - `ENABLE_DEBUG` (default off): `/debug` returns 404 unless enabled.
-- `/health` reports key *presence* booleans + `live_mode` — never secret values.
+- `/health` reports key *presence* booleans + `live_mode` - never secret values.
 - In-memory per-IP rate limit on invoke/stream/resume (~20/min).
 
 **Verdict:** Public demo/sim remains open (accepted). Live path is opt-in and optionally token-gated. Still not company IAM / OIDC.
@@ -90,14 +90,14 @@ Explicit allowlist via `CORS_ORIGINS` (comma-separated). Defaults:
 - `http://localhost:3000` / `http://127.0.0.1:3000`
 - `http://localhost:8000` / `http://127.0.0.1:8000`
 
-Credentials are enabled **only** with that allowlist — never `allow_origins=["*"]` with credentials. `/ui` security headers: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, CSP (jsDelivr Mermaid + inline scripts required by the single-file UI).
+Credentials are enabled **only** with that allowlist - never `allow_origins=["*"]` with credentials. `/ui` security headers: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, CSP (jsDelivr Mermaid + inline scripts required by the single-file UI).
 
 ---
 
 ## 6. Secrets & config
 
 - `.gitignore` excludes `.env`, `.env.local`, `.env.*.local`.
-- `.env.example` documents `GOOGLE_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `LANGCHAIN_API_KEY`, `DATABASE_URL`, `REDIS_URL`, `TAVILY_API_KEY`, `GITHUB_TOKEN`, `SLACK_BOT_TOKEN` — all empty.
+- `.env.example` documents `GOOGLE_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `LANGCHAIN_API_KEY`, `DATABASE_URL`, `REDIS_URL`, `TAVILY_API_KEY`, `GITHUB_TOKEN`, `SLACK_BOT_TOKEN` - all empty.
 - Vercel env holds the live Google + LangSmith keys. They are not in git.
 - `/health` only returns booleans for key presence.
 

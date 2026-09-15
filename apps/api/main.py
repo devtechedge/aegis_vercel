@@ -178,7 +178,7 @@ async def resume_thread_stream(
     _rl: None = Depends(rate_limit_invoke),
     _tok: None = Depends(require_run_token_if_configured),
 ):
-    """SSE streaming resume — emits post-HITL evaluator/communicator flow.
+    """SSE streaming resume - emits post-HITL evaluator/communicator flow.
 
     On Vercel serverless, in-memory LangGraph checkpoints (MemorySaver) are
     lost between function invocations.  Command(resume=...) on a fresh process
@@ -256,7 +256,7 @@ DESCRIPTORS = {
 
 def _extract_text(node: str, update: dict) -> str:
     parts = []
-    # Only use the LAST message from each node — earlier messages are
+    # Only use the LAST message from each node - earlier messages are
     # accumulated history from previous agents and cause duplicate output.
     messages = update.get("messages", [])
     if messages:
@@ -275,7 +275,7 @@ def _extract_text(node: str, update: dict) -> str:
             else:
                 parts.append(content if len(str(content)) < 800 else str(content)[:800] + "...")
 
-    # Routing metadata — only show on supervisor to prevent
+    # Routing metadata - only show on supervisor to prevent
     # leakage into sub-agent nodes (e.g. sre_analyst showing Route -> sre_analyst)
     if node == "supervisor":
         next_agent = update.get("next_agent")
@@ -348,13 +348,13 @@ def _real_event_gen(task: str, thread_id: str):
         """Handle different LangGraph versions returning different astream shapes.
 
         LangGraph has changed astream(stream_mode="updates") return format across versions:
-          - Some yield (mode_str, {node_name: update_dict})  — newest
-          - Some yield (node_name, update_dict)               — older
-          - Some yield {node_name: update_dict}               — no tuple
+          - Some yield (mode_str, {node_name: update_dict})  - newest
+          - Some yield (node_name, update_dict)               - older
+          - Some yield {node_name: update_dict}               - no tuple
 
         This normalises all three into {node_name: update_dict}.
         """
-        # Case 1: bare dict — already {node_name: update}
+        # Case 1: bare dict - already {node_name: update}
         if isinstance(chunk, dict):
             return chunk
         # Case 2 & 3: tuple of 2
@@ -363,7 +363,7 @@ def _real_event_gen(task: str, thread_id: str):
             # If second is a dict whose keys include agent names → (mode, {node: update})
             if isinstance(second, dict) and any(k in DESCRIPTORS for k in second):
                 return second
-            # Otherwise → (node_name, update_dict) — old format
+            # Otherwise → (node_name, update_dict) - old format
             return {first: second} if isinstance(second, dict) else {str(first): second}
         # Fallback: treat as single dict
         return chunk if isinstance(chunk, dict) else {"unknown": chunk}
@@ -1126,7 +1126,7 @@ async function approveHITL(approved) {
   hitlStatus.textContent = 'sending...';
 
   if (isDemoMode) {
-    // Instant client-side simulation — no API call
+    // Instant client-side simulation - no API call
     await new Promise(r => setTimeout(r, 600));
     if (approved) {
       out.textContent += '\n\n[HITL APPROVED] Human approved code changes. Resuming graph execution...';
@@ -1151,7 +1151,7 @@ async function approveHITL(approved) {
     return;
   }
 
-  // Live mode — use streaming resume to show evaluator/communicator output
+  // Live mode - use streaming resume to show evaluator/communicator output
   const msg = approved
     ? '\n\n[HITL APPROVED] Human approved code changes. Resuming graph execution...\n'
     : '\n\n[HITL REJECTED] Human rejected the proposed changes. Stopping.\n';

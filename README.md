@@ -1,10 +1,10 @@
-# AEGIS — Autonomous Enterprise Graph Intelligence System
+# AEGIS - Autonomous Enterprise Graph Intelligence System
 
 **A self-hosted, auditable alternative to Glean + Devin + PagerDuty Autopilot, built 100% on LangChain.**
 
-> **Try it live:** [aegis-agent-api.vercel.app/ui](https://aegis-agent-api.vercel.app/ui) — toggle between Demo and Live inference, watch the LangGraph supervisor route specialists in real time, and approve/reject HITL gates.
+> **Try it live:** [aegis-agent-api.vercel.app/ui](https://aegis-agent-api.vercel.app/ui) - toggle between Demo and Live inference, watch the LangGraph supervisor route specialists in real time, and approve/reject HITL gates.
 
-AEGIS takes a natural language operational request — _"Why is checkout latency spiking in us-east?"_ — and autonomously plans, delegates to specialist sub-agents, retrieves from hybrid knowledge bases, executes tools, hits human-in-the-loop gates, and posts a fully traced, evaluated, and auditable result.
+AEGIS takes a natural language operational request - _"Why is checkout latency spiking in us-east?"_ - and autonomously plans, delegates to specialist sub-agents, retrieves from hybrid knowledge bases, executes tools, hits human-in-the-loop gates, and posts a fully traced, evaluated, and auditable result.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?logo=vercel)](https://aegis-agent-api.vercel.app/ui)
 [![CI](https://img.shields.io/github/actions/workflow/status/devtechedge/aegis_vercel/ci.yml?branch=main)](https://github.com/devtechedge/aegis_vercel/actions)
@@ -22,11 +22,11 @@ Open [aegis-agent-api.vercel.app/ui](https://aegis-agent-api.vercel.app/ui) and 
 **What you'll see:**
 
 - **Real-time Mermaid graph** animating the execution path: Supervisor → SRE Analyst → Knowledge → Coder → [HITL] → Evaluator → Communicator
-- **Streaming agent output** — each specialist's findings appear as they execute, with confidence scores and artifact counts
-- **Human-in-the-Loop gate** — the Coder produces a patch, pauses for your approval, then the Evaluator and Communicator complete the flow
-- **Demo / Live toggle** — Demo mode runs an instant simulation; Live mode connects to the real LangGraph with your API keys
-- **Live info panel** — step count, confidence %, artifact count, and elapsed time update in real time
-- **LangSmith traces** — one-click link to the full trace for every run
+- **Streaming agent output** - each specialist's findings appear as they execute, with confidence scores and artifact counts
+- **Human-in-the-Loop gate** - the Coder produces a patch, pauses for your approval, then the Evaluator and Communicator complete the flow
+- **Demo / Live toggle** - Demo mode runs an instant simulation; Live mode connects to the real LangGraph with your API keys
+- **Live info panel** - step count, confidence %, artifact count, and elapsed time update in real time
+- **LangSmith traces** - one-click link to the full trace for every run
 
 ### Screenshots
 
@@ -56,7 +56,7 @@ Public demo threat model: [SECURITY.md](SECURITY.md). Demo/sim is public by defa
                               [LangSmith Traces / Evals / Prompt Hub]
 ```
 
-## Feature Matrix — Full LangChain Ecosystem
+## Feature Matrix - Full LangChain Ecosystem
 
 | Product | Used For |
 |---|---|
@@ -67,7 +67,7 @@ Public demo threat model: [SECURITY.md](SECURITY.md). Demo/sim is public by defa
 | **RAG** | MultiQuery → Cohere Rerank → LLM Grader → HyDE, PGVector + BM25 hybrid |
 | **Tools (14)** | Tavily, Code Executor, Postgres, GitHub, Slack, Browser, Prometheus, Runbook, Arxiv, Wikipedia, Email, Calendar, FS, Memory |
 
-## 7 Agentic Loops — All Implemented
+## 7 Agentic Loops - All Implemented
 
 1. Perception-Plan-Act-Reflect
 2. Supervisor-Worker Hierarchical
@@ -83,13 +83,13 @@ All visible in LangSmith with custom metadata.
 
 ## Quickstart
 
-### Vercel (recommended — zero config)
+### Vercel (recommended - zero config)
 
 1. Fork this repo
 2. Import into [Vercel](https://vercel.com)
 3. Set root directory to `apps/api`
 4. Add `GOOGLE_API_KEY` (or `OPENAI_API_KEY`) as an environment variable
-5. Deploy — visit `/ui` for the live dashboard, `/docs` for the API playground
+5. Deploy - visit `/ui` for the live dashboard, `/docs` for the API playground
 
 Without API keys the UI gracefully falls back to **Demo mode** (instant simulation).
 
@@ -149,7 +149,7 @@ aegis/
 python scripts/run_evals.py
 ```
 
-Writes `evals/reports/latest.md`. Public CI has no `LANGCHAIN_API_KEY`, so that job writes a **mock** report and exits 0 — it does not measure live LangSmith faithfulness. With the key set, datasets `aegis_rag_qa`, `aegis_tool_use`, and `aegis_incident_triage` run against project `aegis-production`; the intended production threshold is faithfulness ≥ 0.82.
+Writes `evals/reports/latest.md`. Public CI has no `LANGCHAIN_API_KEY`, so that job writes a **mock** report and exits 0 - it does not measure live LangSmith faithfulness. With the key set, datasets `aegis_rag_qa`, `aegis_tool_use`, and `aegis_incident_triage` run against project `aegis-production`; the intended production threshold is faithfulness ≥ 0.82.
 
 CI itself fails on ruff (real errors), mypy on tools/evals/tests, and pytest (graph compile, RAG loop, tool guards, `/health` `/ui` `/stream` smokes). `pip-audit` is informational and does not fail the job on LangChain majors.
 
@@ -166,8 +166,8 @@ CI itself fails on ruff (real errors), mypy on tools/evals/tests, and pytest (gr
 | `REDIS_URL` | Short-term memory |
 | `TAVILY_API_KEY` | Web search |
 
-All optional — fake models/fallbacks keep Vercel deploy green even without keys.
+All optional - fake models/fallbacks keep Vercel deploy green even without keys.
 
 ---
 
-MIT License — Built with LangChain, LangGraph, LangSmith
+MIT License - Built with LangChain, LangGraph, LangSmith
