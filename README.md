@@ -22,6 +22,7 @@ Open [aegis-agent-api.vercel.app/ui](https://aegis-agent-api.vercel.app/ui) and 
 **What you'll see:**
 
 - **Real-time LangGraph visualizer** - labeled specialist pills around the supervisor, animating Supervisor → SRE Analyst → Knowledge → Coder → [HITL] → Evaluator → Communicator. Names stay inside the node so they do not clip on a phone.
+- **Specialist roster** - idle / live / done for each agent in the current run
 - **Streaming agent output** - each specialist's findings appear as they execute, with confidence scores and artifact counts
 - **Human-in-the-Loop gate** - the Coder produces a patch, pauses for your approval, then the Evaluator and Communicator complete the flow
 - **Demo / Live toggle** - Demo mode runs an instant simulation; Live mode connects to the real LangGraph with your API keys

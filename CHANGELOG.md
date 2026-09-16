@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.8.0] - 2026-09-17
+
+### Changed
+- **Operations console** - denser full-viewport layout: run HUD sits above the transcript, the visualizer shares the rail with a live specialist roster, and Demo/Live status is a persistent header pulse.
+- **HITL gate** - status reads "awaiting approval" while the dialog is open instead of flipping to done mid-gate.
+
+### Added
+- Specialist roster with idle / live / done for Supervisor, SRE Analyst, Knowledge, Coder, HITL, Evaluator, and Communicator.
+- Activity rail of the last graph descriptions above the stream.
+
+---
+
 ## [0.7.0] - 2026-09-17
 
 ### Changed
