@@ -56,24 +56,23 @@ a:hover{text-decoration:underline;text-underline-offset:4px}
 .skip{position:absolute;left:-999px;top:0;background:var(--accent);color:var(--accent-fg);padding:8px 12px;z-index:50;border-radius:8px}
 .skip:focus{left:12px;top:12px}
 header.app-header{position:sticky;top:0;z-index:20;border-bottom:1px solid var(--border);background:color-mix(in oklab,var(--bg) 90%,transparent);backdrop-filter:blur(12px);padding-top:env(safe-area-inset-top)}
-.header-inner{max-width:1440px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:12px 24px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+.header-inner{max-width:1440px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px 24px;min-height:56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
 .brand{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
 .brand h1{margin:0;font-size:clamp(1.05rem,1rem + .4vw,1.25rem);font-weight:600;letter-spacing:-.02em;text-wrap:balance}
 .brand .sub{margin:0;font-size:12px;color:var(--fg-muted)}
 .ver{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-subtle);margin-left:8px}
-.mode-badge{display:none;font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;border-radius:999px;box-shadow:var(--shadow-border)}
-@media(min-width:640px){.mode-badge{display:inline-block}}
+.mode-badge{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;border-radius:999px;box-shadow:var(--shadow-border)}
 .mode-real{color:var(--success)}.mode-demo{color:var(--warning)}.mode-off{color:var(--danger)}
 .pane-tabs{display:flex;gap:4px;max-width:1440px;margin:12px auto 0;padding:0 16px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
 .pane-tabs button{flex:1;min-height:44px;border:0;background:transparent;color:var(--fg-muted);font:inherit;font-size:14px;font-weight:500;border-radius:var(--radius-sm)}
 .pane-tabs button[aria-pressed="true"]{background:var(--bg-elevated);color:var(--fg);box-shadow:var(--shadow-border)}
 @media(min-width:960px){.pane-tabs{display:none}}
 main.shell{max-width:1440px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr;gap:16px;padding:16px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));padding-bottom:max(24px,env(safe-area-inset-bottom));flex:1}
-@media(min-width:960px){main.shell{grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);align-items:start;gap:20px;padding:24px}}
-.panel{background:var(--bg-elevated);border-radius:var(--radius-xl);padding:20px;box-shadow:var(--shadow-border)}
-@media(min-width:640px){.panel{padding:24px}}
-.stack{display:flex;flex-direction:column;gap:16px;min-width:0}
-.side{min-width:0}
+@media(min-width:960px){main.shell{grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);align-items:stretch;gap:16px;padding:16px 24px;overflow:hidden}}
+.panel{background:var(--bg-elevated);border-radius:var(--radius-xl);padding:16px;box-shadow:var(--shadow-border)}
+@media(min-width:640px){.panel{padding:20px}}
+.stack{display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0}
+.side{min-width:0;min-height:0}
 @media(min-width:960px){.side{position:sticky;top:80px}.stack,.side{display:flex !important}}
 @media(max-width:959px){main.shell[data-pane="graph"] .stack{display:none}main.shell[data-pane="console"] .side{display:none}}
 .toggle-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
@@ -111,7 +110,7 @@ button:active:not(:disabled){transform:scale(.96)}
 #out[data-empty="true"]{color:var(--fg-subtle)}
 #out[data-running="true"]::after{content:"▍";margin-left:2px;color:var(--accent);animation:caret 1s steps(1) infinite}
 @keyframes caret{50%{opacity:0}}
-.info-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+.info-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
 @media(min-width:640px){.info-bar{grid-template-columns:repeat(4,1fr)}}
 .info-chip{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg-subtle);border-radius:var(--radius-md);padding:10px 12px;box-shadow:var(--shadow-border);font-size:12px;color:var(--fg-muted)}
 .info-chip .val{color:var(--fg);font-family:var(--font-mono);font-weight:600;font-size:16px;font-variant-numeric:tabular-nums}
@@ -157,6 +156,30 @@ h2,h3{margin:0 0 16px;font-size:16px;font-weight:500;letter-spacing:-.01em}
 #graph-log{font-size:12px;color:var(--fg-muted);margin-top:8px;max-height:88px;overflow-y:auto;white-space:pre-line;line-height:1.5;font-family:var(--font-mono)}
 .expected-path{margin-top:12px;font-size:12px;color:var(--fg-subtle);line-height:1.5}
 .trace{margin-top:16px;font-size:14px}
+.mode-dot{width:7px;height:7px;border-radius:999px;display:inline-block;flex-shrink:0;background:var(--warning)}
+.mode-dot[data-on="live"]{background:var(--success);box-shadow:0 0 0 3px color-mix(in oklab,var(--success) 25%,transparent)}
+.mode-dot[data-on="demo"]{background:var(--warning)}
+.mode-dot[data-on="offline"]{background:var(--danger)}
+.mode-dot[data-pulse="true"]{animation:mode-pulse 1.6s var(--ease-out) infinite}
+@keyframes mode-pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.roster{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.roster li{display:flex;align-items:center;gap:12px;min-height:44px;padding:6px 8px;border-radius:var(--radius-sm)}
+.roster-dot{width:8px;height:8px;border-radius:999px;flex-shrink:0;box-shadow:var(--shadow-border)}
+.roster-dot[data-status="idle"]{background:transparent;box-shadow:inset 0 0 0 1.5px var(--border-strong)}
+.roster-dot[data-status="active"]{background:var(--accent);animation:mode-pulse 1.4s var(--ease-out) infinite}
+.roster-dot[data-status="done"]{background:var(--success)}
+.roster-dot[data-node="hitl"][data-status="active"]{background:var(--warning)}
+.roster .name{font-size:14px;font-weight:500;line-height:1.2}
+.roster .role{font-size:12px;color:var(--fg-subtle);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.roster .st{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle);margin-left:auto}
+#activity{max-height:96px;overflow-y:auto;background:var(--bg-subtle);border-radius:var(--radius-md);padding:8px 12px;box-shadow:var(--shadow-border);margin:0 0 12px;font-size:12px;color:var(--fg-muted);line-height:1.5}
+#activity[hidden]{display:none}
+.kbd-chip{font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;color:var(--fg-subtle);padding:2px 6px;border-radius:4px;box-shadow:var(--shadow-border);margin-left:auto}
+.hitl-box{animation:hitl-in var(--motion-fast) var(--ease-out)}
+@keyframes hitl-in{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+.banner{border-bottom:1px solid var(--border);background:var(--bg-elevated);padding:8px 16px;text-align:center;font-size:14px;color:var(--danger)}
+.banner[hidden]{display:none}
+.side h3{margin:16px 0 8px;font-size:14px;font-weight:500}
 button.theme-toggle{width:44px;height:44px;padding:0;flex:0 0 44px;display:grid;place-items:center;position:relative;border-radius:var(--radius-sm);background:transparent;color:inherit;box-shadow:var(--shadow-border)}
 button.theme-toggle .icon{grid-area:1/1;display:grid;place-items:center;transition:opacity 300ms cubic-bezier(.2,0,0,1),transform 300ms cubic-bezier(.2,0,0,1),filter 300ms cubic-bezier(.2,0,0,1)}
 button.theme-toggle .icon-sun{opacity:1;transform:scale(1);filter:blur(0)}
@@ -178,6 +201,8 @@ html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale
   .status-text[data-running="true"]{background:none;color:var(--fg-muted);-webkit-background-clip:unset;background-clip:unset}
   #out[data-running="true"]::after{animation:none}
   .graph-node[data-status="active"] .graph-pulse{display:none}
+  .hitl-box{animation:none}
+  .mode-dot[data-pulse="true"],.roster-dot[data-status="active"]{animation:none}
 }
 </style>
 </head>
@@ -196,7 +221,7 @@ html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale
         <p class="sub">Operations cortex</p>
       </div>
     </div>
-    <span id="mode-badge" class="mode-badge mode-demo">checking...</span>
+    <span id="mode-badge" class="mode-badge mode-demo"><i class="mode-dot" data-on="demo" aria-hidden="true"></i><span>checking...</span></span>
     <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch to light mode" title="Light mode">
       <span class="icon icon-moon" aria-hidden="true">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 14.3A9 9 0 1 1 9.7 3 7 7 0 0 0 21 14.3z"/></svg>
@@ -207,6 +232,7 @@ html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale
     </button>
   </div>
 </header>
+<div class="banner" id="offline-banner" hidden>API unreachable. Demo simulation still runs locally.</div>
 <div class="pane-tabs" role="tablist" aria-label="Dashboard panes">
   <button type="button" data-pane="console" aria-pressed="true">Console</button>
   <button type="button" data-pane="graph" aria-pressed="false">Graph</button>
@@ -229,22 +255,23 @@ html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale
         <button class="btn-primary" id="run" type="button">Run AEGIS</button>
         <button class="btn-stop" id="stop" type="button" disabled>Stop</button>
         <span class="status-text" id="status" aria-live="polite"></span>
-        <span class="kbd">Ctrl/⌘+Enter</span>
+        <span class="kbd kbd-chip">Ctrl/⌘+Enter</span>
       </div>
     </section>
-    <section class="panel">
+    <section class="panel stream-panel">
       <div class="stream-head">
         <h2>Transcript</h2>
         <span class="status-text" id="stream-hint">idle</span>
       </div>
-      <pre id="out" aria-live="polite" data-empty="true">Output will appear here...</pre>
-      <ul class="arts" id="arts" hidden></ul>
       <div class="info-bar">
         <div class="info-chip"><span>Steps</span> <span class="val" id="info-steps">0</span></div>
         <div class="info-chip"><span>Confidence</span> <span class="val" id="info-conf">&mdash;</span></div>
         <div class="info-chip"><span>Artifacts</span> <span class="val" id="info-arts">0</span></div>
         <div class="info-chip"><span>Time</span> <span class="val" id="info-time">&mdash;</span></div>
       </div>
+      <div id="activity" hidden></div>
+      <pre id="out" aria-live="polite" data-empty="true">Output will appear here...</pre>
+      <ul class="arts" id="arts" hidden></ul>
     </section>
   </div>
   <aside class="panel side">
@@ -309,6 +336,16 @@ html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale
       <span><i class="lg-live"></i>Live</span>
       <span><i class="lg-done"></i>Done</span>
     </div>
+    <h3>Specialists</h3>
+    <ul class="roster" id="roster" aria-label="Specialist roster">
+      <li data-node="supervisor"><i class="roster-dot" data-node="supervisor" data-status="idle"></i><div><div class="name">Supervisor</div><div class="role">Routes specialists</div></div><span class="st">idle</span></li>
+      <li data-node="sre_analyst"><i class="roster-dot" data-node="sre_analyst" data-status="idle"></i><div><div class="name">SRE Analyst</div><div class="role">Metrics, logs, error rates</div></div><span class="st">idle</span></li>
+      <li data-node="knowledge"><i class="roster-dot" data-node="knowledge" data-status="idle"></i><div><div class="name">Knowledge</div><div class="role">Runbooks and past incidents</div></div><span class="st">idle</span></li>
+      <li data-node="coder"><i class="roster-dot" data-node="coder" data-status="idle"></i><div><div class="name">Coder</div><div class="role">Patches and scripts</div></div><span class="st">idle</span></li>
+      <li data-node="hitl"><i class="roster-dot" data-node="hitl" data-status="idle"></i><div><div class="name">HITL gate</div><div class="role">Human approval gate</div></div><span class="st">idle</span></li>
+      <li data-node="evaluator"><i class="roster-dot" data-node="evaluator" data-status="idle"></i><div><div class="name">Evaluator</div><div class="role">SLO and safety checks</div></div><span class="st">idle</span></li>
+      <li data-node="communicator"><i class="roster-dot" data-node="communicator" data-status="idle"></i><div><div class="name">Communicator</div><div class="role">Slack and incident report</div></div><span class="st">idle</span></li>
+    </ul>
     <div id="path"><em style="color:var(--fg-subtle)">Graph will animate live during run</em></div>
     <div id="graph-log"></div>
     <div class="trace"><a href="https://smith.langchain.com" target="_blank" rel="noreferrer">View full trace in LangSmith (aegis-production) ↗</a></div>
@@ -399,16 +436,34 @@ const SAMPLES = [
   });
 })();
 
+function setBadge(label, kind) {
+  const badge = $('#mode-badge');
+  if (!badge) return;
+  badge.className = 'mode-badge mode-' + (kind === 'LIVE' ? 'real' : kind === 'OFFLINE' ? 'off' : 'demo');
+  var dot = badge.querySelector('.mode-dot');
+  var text = badge.querySelector('span');
+  if (!dot) {
+    dot = document.createElement('i');
+    dot.className = 'mode-dot';
+    dot.setAttribute('aria-hidden', 'true');
+    badge.insertBefore(dot, badge.firstChild);
+  }
+  if (!text) {
+    text = document.createElement('span');
+    badge.appendChild(text);
+  }
+  dot.setAttribute('data-on', kind === 'LIVE' ? 'live' : kind === 'OFFLINE' ? 'offline' : 'demo');
+  text.textContent = label;
+}
+
 fetch('/health').then(r => r.json()).then(h => {
   graphAvailable = !!h.graph && !!h.live_mode;
-  const badge = $('#mode-badge');
   const toggle = $('#demo-toggle');
   if (graphAvailable) {
     toggle.disabled = false;
     updateToggleUI();
   } else {
-    badge.textContent = 'DEMO';
-    badge.className = 'mode-badge mode-demo';
+    setBadge('DEMO', 'DEMO');
     toggle.checked = false;
     toggle.disabled = true;
     $('#toggle-text').textContent = 'Live inference';
@@ -419,10 +474,11 @@ fetch('/health').then(r => r.json()).then(h => {
     isDemoMode = true;
   }
 }).catch(() => {
-  $('#mode-badge').textContent = 'OFFLINE';
-  $('#mode-badge').className = 'mode-badge mode-off';
+  setBadge('OFFLINE', 'OFFLINE');
   $('#status').textContent = 'API unreachable';
   setStreamHint('offline');
+  var banner = $('#offline-banner');
+  if (banner) banner.hidden = false;
 });
 
 function setStreamHint(text) {
@@ -432,19 +488,16 @@ function setStreamHint(text) {
 
 function updateToggleUI() {
   const toggle = $('#demo-toggle');
-  const badge = $('#mode-badge');
   const label = $('#toggle-text');
   isDemoMode = !toggle.checked;
   if (!graphAvailable) return;
   if (toggle.checked) {
-    badge.textContent = 'LIVE';
-    badge.className = 'mode-badge mode-real';
+    setBadge('LIVE', 'LIVE');
     label.textContent = 'Live inference (uses API keys)';
     $('#status').textContent = 'live mode';
     setStreamHint('live');
   } else {
-    badge.textContent = 'DEMO';
-    badge.className = 'mode-badge mode-demo';
+    setBadge('DEMO', 'DEMO');
     label.textContent = 'Live inference';
     $('#status').textContent = 'demo mode';
     setStreamHint('demo');
@@ -483,6 +536,35 @@ function renderGraph(steps) {
     edge.setAttribute('data-on', on);
   });
   if (el) el.classList.toggle('active', steps.length > 0);
+  renderRoster(steps);
+}
+
+function renderRoster(steps) {
+  const last = steps.length ? steps[steps.length - 1] : '';
+  document.querySelectorAll('#roster li').forEach(function(li){
+    var id = li.getAttribute('data-node');
+    var status = 'idle';
+    if (id === last) status = 'active';
+    else if (steps.indexOf(id) !== -1) status = 'done';
+    li.setAttribute('data-status', status);
+    var dot = li.querySelector('.roster-dot');
+    if (dot) dot.setAttribute('data-status', status);
+    var st = li.querySelector('.st');
+    if (st) st.textContent = status === 'active' ? 'live' : status;
+  });
+}
+
+function renderActivity() {
+  const act = $('#activity');
+  if (!act) return;
+  const logEl = $('#graph-log');
+  const lines = (logEl && logEl.textContent) ? logEl.textContent.split('\n').filter(Boolean) : [];
+  if (!lines.length) { act.hidden = true; act.innerHTML = ''; return; }
+  act.hidden = false;
+  act.innerHTML = lines.slice(-6).map(function(line){
+    return '<p>' + line.replace(/^•\s*/, '') + '</p>';
+  }).join('');
+  act.scrollTop = act.scrollHeight;
 }
 
 function addStep(step, description) {
@@ -496,6 +578,7 @@ function addStep(step, description) {
   if (logEl && description) {
     logEl.textContent += (logEl.textContent ? '\n' : '') + '\u2022 ' + description;
     logEl.scrollTop = logEl.scrollHeight;
+    renderActivity();
   }
   if (step === 'hitl') {
     const overlay = $('#hitl-overlay');
@@ -506,6 +589,8 @@ function addStep(step, description) {
       const btn = $('#btn-approve');
       if (btn) btn.focus();
     }
+    $('#status').textContent = 'awaiting approval';
+    setStreamHint('awaiting approval');
   }
 }
 
@@ -662,6 +747,7 @@ async function runStream() {
   if (pathEl) pathEl.innerHTML = '';
   const logEl = $('#graph-log');
   if (logEl) logEl.textContent = '';
+  renderActivity();
   renderGraph(currentPath);
   clearInterval(timerInterval);
   timerInterval = setInterval(updateTimer, 200);
