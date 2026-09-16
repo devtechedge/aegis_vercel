@@ -69,7 +69,7 @@ header.app-header{position:sticky;top:0;z-index:20;border-bottom:1px solid var(-
 .pane-tabs button[aria-pressed="true"]{background:var(--bg-elevated);color:var(--fg);box-shadow:var(--shadow-border)}
 @media(min-width:960px){.pane-tabs{display:none}}
 main.shell{max-width:1440px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr;gap:16px;padding:16px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));padding-bottom:max(24px,env(safe-area-inset-bottom));flex:1}
-@media(min-width:960px){main.shell{grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);align-items:start;gap:20px;padding:24px}}
+@media(min-width:960px){main.shell{grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);align-items:start;gap:20px;padding:24px}}
 .panel{background:var(--bg-elevated);border-radius:var(--radius-xl);padding:20px;box-shadow:var(--shadow-border)}
 @media(min-width:640px){.panel{padding:24px}}
 .stack{display:flex;flex-direction:column;gap:16px;min-width:0}
@@ -105,7 +105,12 @@ button:active:not(:disabled){transform:scale(.96)}
 @keyframes shimmer{to{background-position:-100% 0}}
 .kbd{display:none;font-size:12px;color:var(--fg-subtle)}
 @media(min-width:640px){.kbd{display:inline}}
+.stream-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
+.stream-head h2{margin:0;font-size:16px;font-weight:500;letter-spacing:-.01em}
 #out{min-height:220px;max-height:min(52vh,420px);overflow-y:auto;background:var(--bg-subtle);border-radius:var(--radius-md);padding:16px;white-space:pre-wrap;font-family:var(--font-mono);font-size:13px;line-height:1.6;box-shadow:var(--shadow-border);margin:0}
+#out[data-empty="true"]{color:var(--fg-subtle)}
+#out[data-running="true"]::after{content:"▍";margin-left:2px;color:var(--accent);animation:caret 1s steps(1) infinite}
+@keyframes caret{50%{opacity:0}}
 .info-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
 @media(min-width:640px){.info-bar{grid-template-columns:repeat(4,1fr)}}
 .info-chip{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg-subtle);border-radius:var(--radius-md);padding:10px 12px;box-shadow:var(--shadow-border);font-size:12px;color:var(--fg-muted)}
@@ -120,19 +125,33 @@ button:active:not(:disabled){transform:scale(.96)}
 .hitl-box .hint{color:var(--fg-muted);font-weight:400}
 .hitl-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}
 h2,h3{margin:0 0 16px;font-size:16px;font-weight:500;letter-spacing:-.01em}
-#graph{min-height:280px;background:var(--bg-subtle);border-radius:var(--radius-md);padding:12px;box-shadow:var(--shadow-border)}
+#graph{min-height:280px;background:var(--bg-subtle);border-radius:var(--radius-md);padding:12px 8px;box-shadow:var(--shadow-border);overflow:visible}
 #graph.active{box-shadow:var(--shadow-border-hover)}
-#graph-hub{width:100%;height:auto;max-height:min(52vh,420px)}
+#graph-hub{width:100%;height:auto;max-height:min(56vh,440px);overflow:visible;display:block}
 .graph-edge{stroke:var(--border-strong);stroke-width:1.25;fill:none}
 .graph-edge[data-on="active"]{stroke:var(--accent);stroke-width:1.75}
 .graph-edge[data-on="done"]{stroke:color-mix(in oklab,var(--success) 55%,var(--border))}
-.graph-shape{stroke-width:1.5}
+.graph-shape{stroke-width:1.25}
 .graph-shape[data-status="idle"]{fill:var(--bg-elevated);stroke:var(--border-strong)}
 .graph-shape[data-status="active"]{fill:var(--accent);stroke:var(--accent)}
 .graph-shape[data-status="done"]{fill:color-mix(in oklab,var(--success) 28%,var(--bg-elevated));stroke:var(--success)}
-.graph-shape[data-node="hitl"][data-status="active"]{fill:color-mix(in oklab,var(--warning) 55%,var(--bg-elevated));stroke:var(--warning)}
-.graph-label{font-size:11px;font-family:var(--font-sans);font-weight:500;fill:var(--fg-subtle)}
-.graph-label[data-on="true"]{fill:var(--fg)}
+.graph-node[data-node="hitl"] .graph-shape[data-status="idle"]{stroke-dasharray:3.5 2.5}
+.graph-node[data-node="hitl"] .graph-shape[data-status="active"]{fill:color-mix(in oklab,var(--warning) 55%,var(--bg-elevated));stroke:var(--warning);stroke-dasharray:none}
+.graph-node[data-node="supervisor"] .graph-shape{stroke-width:1.6}
+.graph-label{font-size:12px;font-family:var(--font-sans);font-weight:500;fill:var(--fg-muted);letter-spacing:.01em}
+.graph-node[data-status="active"] .graph-label{fill:var(--accent-fg)}
+.graph-node[data-status="done"] .graph-label{fill:var(--fg)}
+.graph-node[data-node="hitl"][data-status="active"] .graph-label{fill:var(--accent-fg)}
+.graph-pulse{fill:none;stroke:var(--accent);stroke-width:1;opacity:0;pointer-events:none}
+.graph-node[data-status="active"] .graph-pulse{opacity:.4;animation:graph-pulse 1.6s var(--ease-out) infinite}
+.graph-node[data-node="hitl"][data-status="active"] .graph-pulse{stroke:var(--warning)}
+@keyframes graph-pulse{to{opacity:0}}
+.graph-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-size:11px;color:var(--fg-subtle)}
+.graph-legend span{display:inline-flex;align-items:center;gap:6px}
+.graph-legend i{width:8px;height:8px;border-radius:999px;display:inline-block;box-shadow:var(--shadow-border)}
+.graph-legend .lg-idle{background:var(--bg-elevated)}
+.graph-legend .lg-live{background:var(--accent)}
+.graph-legend .lg-done{background:var(--success)}
 #path{font-size:14px;color:var(--fg-muted);margin-top:12px;line-height:1.6}
 #path strong{color:var(--fg);font-weight:500}
 #graph-log{font-size:12px;color:var(--fg-muted);margin-top:8px;max-height:88px;overflow-y:auto;white-space:pre-line;line-height:1.5;font-family:var(--font-mono)}
@@ -157,6 +176,8 @@ html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   .status-text[data-running="true"]{background:none;color:var(--fg-muted);-webkit-background-clip:unset;background-clip:unset}
+  #out[data-running="true"]::after{animation:none}
+  .graph-node[data-status="active"] .graph-pulse{display:none}
 }
 </style>
 </head>
@@ -212,7 +233,11 @@ html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale
       </div>
     </section>
     <section class="panel">
-      <pre id="out" aria-live="polite">Output will appear here...</pre>
+      <div class="stream-head">
+        <h2>Transcript</h2>
+        <span class="status-text" id="stream-hint">idle</span>
+      </div>
+      <pre id="out" aria-live="polite" data-empty="true">Output will appear here...</pre>
       <ul class="arts" id="arts" hidden></ul>
       <div class="info-bar">
         <div class="info-chip"><span>Steps</span> <span class="val" id="info-steps">0</span></div>
@@ -225,22 +250,49 @@ html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale
   <aside class="panel side">
     <h3>Live LangGraph Visualizer</h3>
     <div id="graph">
-      <svg id="graph-hub" viewBox="0 0 640 430" role="img" aria-label="LangGraph execution path">
+      <svg id="graph-hub" viewBox="0 0 440 400" role="img" aria-label="LangGraph execution path" overflow="visible">
         <title>LangGraph supervisor routing specialists</title>
-        <line class="graph-edge" data-from="supervisor" data-to="sre_analyst" x1="320" y1="198" x2="128" y2="62"/>
-        <line class="graph-edge" data-from="supervisor" data-to="knowledge" x1="320" y1="198" x2="512" y2="62"/>
-        <line class="graph-edge" data-from="supervisor" data-to="coder" x1="320" y1="198" x2="78" y2="214"/>
-        <line class="graph-edge" data-from="supervisor" data-to="hitl" x1="320" y1="198" x2="562" y2="198"/>
-        <line class="graph-edge" data-from="supervisor" data-to="evaluator" x1="320" y1="198" x2="168" y2="356"/>
-        <line class="graph-edge" data-from="supervisor" data-to="communicator" x1="320" y1="198" x2="472" y2="356"/>
-        <line class="graph-edge" data-from="hitl" data-to="evaluator" x1="562" y1="198" x2="168" y2="356"/>
-        <g data-node="sre_analyst"><circle class="graph-shape" data-status="idle" cx="128" cy="62" r="20"/><text class="graph-label" x="128" y="80" text-anchor="middle" dy="18">SRE Analyst</text></g>
-        <g data-node="knowledge"><circle class="graph-shape" data-status="idle" cx="512" cy="62" r="20"/><text class="graph-label" x="512" y="80" text-anchor="middle" dy="18">Knowledge</text></g>
-        <g data-node="coder"><circle class="graph-shape" data-status="idle" cx="78" cy="214" r="20"/><text class="graph-label" x="78" y="232" text-anchor="middle" dy="18">Coder</text></g>
-        <g data-node="supervisor"><circle class="graph-shape" data-status="idle" cx="320" cy="198" r="30"/><text class="graph-label" x="320" y="228" text-anchor="middle" dy="18">Supervisor</text></g>
-        <g data-node="hitl"><rect class="graph-shape" data-node="hitl" data-status="idle" x="542" y="178" width="40" height="40" rx="5" transform="rotate(45 562 198)"/><text class="graph-label" x="562" y="218" text-anchor="middle" dy="18">HITL</text></g>
-        <g data-node="evaluator"><circle class="graph-shape" data-status="idle" cx="168" cy="356" r="20"/><text class="graph-label" x="168" y="374" text-anchor="middle" dy="18">Evaluator</text></g>
-        <g data-node="communicator"><circle class="graph-shape" data-status="idle" cx="472" cy="356" r="20"/><text class="graph-label" x="472" y="374" text-anchor="middle" dy="18">Communicator</text></g>
+        <path class="graph-edge" data-from="supervisor" data-to="sre_analyst" d="M190 152 L90 56"/>
+        <path class="graph-edge" data-from="supervisor" data-to="knowledge" d="M250 152 L350 56"/>
+        <path class="graph-edge" data-from="supervisor" data-to="coder" d="M144 176 L128 182"/>
+        <path class="graph-edge" data-from="supervisor" data-to="hitl" d="M296 176 L312 182"/>
+        <path class="graph-edge" data-from="supervisor" data-to="evaluator" d="M190 200 L98 328"/>
+        <path class="graph-edge" data-from="supervisor" data-to="communicator" d="M250 200 L336 328"/>
+        <g class="graph-node" data-node="sre_analyst" data-status="idle">
+          <rect class="graph-pulse" x="12" y="16" width="156" height="44" rx="22"/>
+          <rect class="graph-shape graph-pill" data-status="idle" x="16" y="20" width="148" height="36" rx="18"/>
+          <text class="graph-label" x="90" y="38" text-anchor="middle" dominant-baseline="central">SRE Analyst</text>
+        </g>
+        <g class="graph-node" data-node="knowledge" data-status="idle">
+          <rect class="graph-pulse" x="272" y="16" width="156" height="44" rx="22"/>
+          <rect class="graph-shape graph-pill" data-status="idle" x="276" y="20" width="148" height="36" rx="18"/>
+          <text class="graph-label" x="350" y="38" text-anchor="middle" dominant-baseline="central">Knowledge</text>
+        </g>
+        <g class="graph-node" data-node="coder" data-status="idle">
+          <rect class="graph-pulse" x="12" y="160" width="120" height="44" rx="22"/>
+          <rect class="graph-shape graph-pill" data-status="idle" x="16" y="164" width="112" height="36" rx="18"/>
+          <text class="graph-label" x="72" y="182" text-anchor="middle" dominant-baseline="central">Coder</text>
+        </g>
+        <g class="graph-node" data-node="supervisor" data-status="idle">
+          <rect class="graph-pulse" x="140" y="148" width="160" height="56" rx="28"/>
+          <rect class="graph-shape graph-pill" data-status="idle" x="144" y="152" width="152" height="48" rx="24"/>
+          <text class="graph-label" x="220" y="176" text-anchor="middle" dominant-baseline="central">Supervisor</text>
+        </g>
+        <g class="graph-node" data-node="hitl" data-status="idle">
+          <rect class="graph-pulse" x="308" y="160" width="120" height="44" rx="22"/>
+          <rect class="graph-shape graph-pill" data-node="hitl" data-status="idle" x="312" y="164" width="112" height="36" rx="18"/>
+          <text class="graph-label" x="368" y="182" text-anchor="middle" dominant-baseline="central">HITL</text>
+        </g>
+        <g class="graph-node" data-node="evaluator" data-status="idle">
+          <rect class="graph-pulse" x="20" y="324" width="156" height="44" rx="22"/>
+          <rect class="graph-shape graph-pill" data-status="idle" x="24" y="328" width="148" height="36" rx="18"/>
+          <text class="graph-label" x="98" y="346" text-anchor="middle" dominant-baseline="central">Evaluator</text>
+        </g>
+        <g class="graph-node" data-node="communicator" data-status="idle">
+          <rect class="graph-pulse" x="244" y="324" width="184" height="44" rx="22"/>
+          <rect class="graph-shape graph-pill" data-status="idle" x="248" y="328" width="176" height="36" rx="18"/>
+          <text class="graph-label" x="336" y="346" text-anchor="middle" dominant-baseline="central">Communicator</text>
+        </g>
       </svg>
       <ol class="sr-only" id="graph-steps" aria-label="LangGraph execution path">
         <li data-node="supervisor" data-status="idle">Supervisor idle</li>
@@ -251,6 +303,11 @@ html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale
         <li data-node="evaluator" data-status="idle">Evaluator idle</li>
         <li data-node="communicator" data-status="idle">Communicator idle</li>
       </ol>
+    </div>
+    <div class="graph-legend" aria-hidden="true">
+      <span><i class="lg-idle"></i>Idle</span>
+      <span><i class="lg-live"></i>Live</span>
+      <span><i class="lg-done"></i>Done</span>
     </div>
     <div id="path"><em style="color:var(--fg-subtle)">Graph will animate live during run</em></div>
     <div id="graph-log"></div>
@@ -356,14 +413,22 @@ fetch('/health').then(r => r.json()).then(h => {
     toggle.disabled = true;
     $('#toggle-text').textContent = 'Live inference';
     $('#status').textContent = 'demo mode';
+    setStreamHint('demo');
     out.textContent = 'AEGIS running in demo simulation mode.\n\nLive inference requires LIVE_MODE=true plus an LLM key on the server.';
+    out.setAttribute('data-empty', 'true');
     isDemoMode = true;
   }
 }).catch(() => {
   $('#mode-badge').textContent = 'OFFLINE';
   $('#mode-badge').className = 'mode-badge mode-off';
   $('#status').textContent = 'API unreachable';
+  setStreamHint('offline');
 });
+
+function setStreamHint(text) {
+  const el = $('#stream-hint');
+  if (el) el.textContent = text;
+}
 
 function updateToggleUI() {
   const toggle = $('#demo-toggle');
@@ -376,11 +441,13 @@ function updateToggleUI() {
     badge.className = 'mode-badge mode-real';
     label.textContent = 'Live inference (uses API keys)';
     $('#status').textContent = 'live mode';
+    setStreamHint('live');
   } else {
     badge.textContent = 'DEMO';
     badge.className = 'mode-badge mode-demo';
     label.textContent = 'Live inference';
     $('#status').textContent = 'demo mode';
+    setStreamHint('demo');
   }
 }
 $('#demo-toggle').addEventListener('change', updateToggleUI);
@@ -392,7 +459,10 @@ function renderGraph(steps) {
     var status = 'idle';
     if (id === last) status = 'active';
     else if (steps.indexOf(id) !== -1) status = 'done';
-    document.querySelectorAll('#graph-hub [data-node="'+id+'"] .graph-shape, #graph-hub .graph-shape[data-node="'+id+'"]').forEach(function(shape){
+    document.querySelectorAll('#graph-hub g[data-node="'+id+'"]').forEach(function(g){
+      g.setAttribute('data-status', status);
+    });
+    document.querySelectorAll('#graph-hub g[data-node="'+id+'"] .graph-shape, #graph-hub .graph-shape[data-node="'+id+'"]').forEach(function(shape){
       shape.setAttribute('data-status', status);
     });
     document.querySelectorAll('#graph-hub g[data-node="'+id+'"] .graph-label').forEach(function(lab){
@@ -401,7 +471,7 @@ function renderGraph(steps) {
     const li = document.querySelector('#graph-steps li[data-node="'+id+'"]');
     if (li) {
       li.setAttribute('data-status', status);
-      li.textContent = li.textContent.replace(/idle|live|done/g, '') + ' ' + (status === 'active' ? 'live' : status);
+      li.textContent = id + ' ' + (status === 'active' ? 'live' : status);
     }
   });
   document.querySelectorAll('#graph-hub .graph-edge').forEach(function(edge){
@@ -462,6 +532,11 @@ function hideHitl() {
   const hitl = $('#hitl-panel');
   if (overlay) overlay.setAttribute('data-open', 'false');
   if (hitl) hitl.setAttribute('data-open', 'false');
+}
+
+function hitlOpen() {
+  const overlay = $('#hitl-overlay');
+  return overlay && overlay.getAttribute('data-open') === 'true';
 }
 
 async function approveHITL(approved) {
@@ -566,10 +641,13 @@ async function approveHITL(approved) {
 
 async function runStream() {
   out.textContent = '';
+  out.setAttribute('data-empty', 'false');
+  out.setAttribute('data-running', 'true');
   $('#run').disabled = true;
   $('#stop').disabled = false;
   $('#status').textContent = 'running...';
   $('#status').setAttribute('data-running', 'true');
+  setStreamHint('running');
   hideHitl();
   currentPath = [];
   stepCount = 0;
@@ -627,12 +705,19 @@ async function runStream() {
     clearInterval(timerInterval);
     updateTimer();
     $('#status').textContent = 'done';
+    setStreamHint('done');
   } catch (e) {
-    if (e.name !== 'AbortError') out.textContent += '\n[error] ' + e;
+    if (e.name !== 'AbortError') {
+      out.textContent += '\n[error] ' + e;
+      setStreamHint('error');
+    } else {
+      setStreamHint('stopped');
+    }
     $('#status').textContent = 'stopped';
     clearInterval(timerInterval);
   } finally {
     $('#status').setAttribute('data-running', 'false');
+    out.setAttribute('data-running', 'false');
     $('#run').disabled = false;
     $('#stop').disabled = true;
     controller = null;
@@ -649,6 +734,21 @@ document.addEventListener('keydown', function(e) {
     if (!$('#run').disabled) runStream();
   }
   if (e.key === 'Escape' && controller) controller.abort();
+  if (e.key === 'Tab' && hitlOpen()) {
+    var approve = $('#btn-approve');
+    var reject = $('#btn-reject');
+    var focusables = [approve, reject].filter(function(b){ return b && !b.disabled; });
+    if (!focusables.length) return;
+    var first = focusables[0];
+    var last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
 });
 window.onload = async () => { renderGraph([]); };
 window.approveHITL = approveHITL;
