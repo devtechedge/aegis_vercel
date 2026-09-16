@@ -440,6 +440,11 @@ async def ui():
 <meta property="og:title" content="AEGIS v0.4.2">
 <meta property="og:description" content="Autonomous Enterprise Graph Intelligence System. A LangGraph supervisor routes specialist sub-agents through human-in-the-loop gates and posts a fully traced, auditable result.">
 <meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://aegis-agent-api.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://aegis-agent-api.vercel.app/og.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23060a14'/><text x='16' y='23' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='700' font-size='20' fill='%2338bdf8'>A</text></svg>">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
