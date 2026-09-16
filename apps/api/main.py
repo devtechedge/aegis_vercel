@@ -434,7 +434,6 @@ async def ui():
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AEGIS v0.4.2</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23060a14'/><text x='16' y='23' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='700' font-size='20' fill='%2338bdf8'>A</text></svg>">
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
@@ -1038,16 +1037,36 @@ function updateToggleUI() {
 
 $('#demo-toggle').addEventListener('change', updateToggleUI);
 
-// ── Mermaid ──
-function initMermaid() {
-  if (typeof mermaid !== 'undefined') {
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: 'dark',
-      flowchart: { curve: 'basis', htmlLabels: true }
+// ── Mermaid (loaded on demand, after first paint) ──
+// The Mermaid bundle is several megabytes. Fetching it in <head> blocked the first
+// paint of the whole console, so it is imported here instead and only when a graph
+// is actually going to be drawn.
+const MERMAID_ESM = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+let mermaidPromise = null;
+
+async function initMermaid() {
+  if (mermaidReady) return;
+  if (!mermaidPromise) {
+    mermaidPromise = import(MERMAID_ESM).then(function (mod) {
+      const mermaid = mod.default || mod;
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        flowchart: { curve: 'basis', htmlLabels: true }
+      });
+      window.mermaid = mermaid;
+      mermaidReady = true;
+      return mermaid;
+    }).catch(function () {
+      mermaidReady = false;
+      const el = $('#graph');
+      if (el) {
+        el.innerHTML = '<div style="padding:20px;color:#f87171;font-size:13px">Graph library unavailable offline</div>';
+      }
+      return null;
     });
-    mermaidReady = true;
   }
+  return mermaidPromise;
 }
 
 async function renderGraph(steps) {
@@ -1327,13 +1346,11 @@ async function runStream() {
 $('#run').onclick = runStream;
 $('#stop').onclick = () => { if (controller) controller.abort(); };
 
-window.onload = () => {
-  initMermaid();
-  setTimeout(() => {
-    renderGraph([]);
-    const pathEl = $('#path');
-    if (pathEl) pathEl.innerHTML = '<em style="color:#4a5578">Graph will animate live during run</em>';
-  }, 80);
+window.onload = async () => {
+  await initMermaid();
+  renderGraph([]);
+  const pathEl = $('#path');
+  if (pathEl) pathEl.innerHTML = '<em style="color:#4a5578">Graph will animate live during run</em>';
 };
 </script>
 </body>
