@@ -5,7 +5,7 @@ import time
 import asyncio
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 
 from security_hardening import (
     SecurityHeadersMiddleware,
@@ -1362,3 +1362,8 @@ window.onload = async () => {
 </script>
 </body>
 </html>"""
+
+@app.get("/og.png")
+def og_image():
+    return FileResponse(os.path.join(os.path.dirname(__file__), "og.png"),
+                        media_type="image/png")
