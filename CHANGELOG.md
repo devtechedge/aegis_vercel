@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.7.0] - 2026-09-17
+
+### Changed
+- **LangGraph hub** - specialists are labeled pills with names drawn inside the node (SRE Analyst, Knowledge, Coder, HITL, Evaluator, Communicator), so the graph stays readable on a phone. HITL is a dashed gate until it fires.
+- **Transcript** - stream panel has an idle / running / done hint, a caret while tokens arrive, and empty-state styling. Same SSE contract (`/stream`, `/threads/{id}/resume/stream`).
+- **HITL dialog** - Tab cycles Approve / Reject while the gate is open.
+
+### Added
+- Idle / Live / Done legend under the visualizer.
+
+---
+
 ## [0.6.0] - 2026-09-17
 
 ### Changed
