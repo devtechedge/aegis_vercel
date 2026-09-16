@@ -21,7 +21,6 @@
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 body{margin:0}
-
 :root,[data-theme="dark"]{
   --bg:#0a0a0b;--bg-elevated:#121214;--bg-subtle:#1a1a1e;
   --fg:#f4f4f5;--fg-muted:#a1a1aa;--fg-subtle:#71717a;
@@ -44,116 +43,56 @@ body{margin:0}
   --border-strong:color-mix(in oklab,var(--fg) 22%,transparent);
   --accent:#1f242c;--accent-fg:#f4f6f8;
   --success:#0f7a56;--warning:#9a6b12;--danger:#b42318;--info:#3d4a5c;
-  --shadow-border:0 0 0 1px rgba(0,0,0,.06),0 1px 2px -1px rgba(0,0,0,.06),0 2px 4px 0 rgba(0,0,0,.04);
-  --shadow-border-hover:0 0 0 1px rgba(0,0,0,.08),0 1px 2px -1px rgba(0,0,0,.08),0 2px 4px 0 rgba(0,0,0,.06);
+  --shadow-border:0px 0px 0px 1px rgba(0,0,0,.06),0px 1px 2px -1px rgba(0,0,0,.06),0px 2px 4px 0px rgba(0,0,0,.04);
+  --shadow-border-hover:0px 0px 0px 1px rgba(0,0,0,.08),0px 1px 2px -1px rgba(0,0,0,.08),0px 2px 4px 0px rgba(0,0,0,.06);
   color-scheme:light;
 }
 html[data-theme="light"]{color-scheme:light}
-
-body{
-  font-family:var(--font-sans);
-  background:var(--bg);
-  color:var(--fg);
-  min-height:100dvh;
-  display:flex;
-  flex-direction:column;
-}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--fg);min-height:100dvh;display:flex;flex-direction:column}
 a{color:var(--info);text-decoration:none}
 a:hover{text-decoration:underline;text-underline-offset:4px}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-
-.skip{
-  position:absolute;left:-999px;top:0;
-  background:var(--accent);color:var(--accent-fg);
-  padding:8px 12px;z-index:50;
-}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.skip{position:absolute;left:-999px;top:0;background:var(--accent);color:var(--accent-fg);padding:8px 12px;z-index:50;border-radius:8px}
 .skip:focus{left:12px;top:12px}
-
-header.app-header{
-  position:sticky;top:0;z-index:20;
-  border-bottom:1px solid var(--border);
-  background:color-mix(in oklab,var(--bg) 90%,transparent);
-  backdrop-filter:blur(12px);
-  padding-top:env(safe-area-inset-top);
-}
-.header-inner{
-  max-width:1400px;margin:0 auto;
-  display:flex;align-items:center;gap:12px;
-  padding:12px 24px;
-  padding-left:max(16px,env(safe-area-inset-left));
-  padding-right:max(16px,env(safe-area-inset-right));
-}
+header.app-header{position:sticky;top:0;z-index:20;border-bottom:1px solid var(--border);background:color-mix(in oklab,var(--bg) 90%,transparent);backdrop-filter:blur(12px);padding-top:env(safe-area-inset-top)}
+.header-inner{max-width:1440px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:12px 24px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
 .brand{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
 .brand h1{margin:0;font-size:clamp(1.05rem,1rem + .4vw,1.25rem);font-weight:600;letter-spacing:-.02em;text-wrap:balance}
 .brand .sub{margin:0;font-size:12px;color:var(--fg-muted)}
 .ver{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-subtle);margin-left:8px}
-.mode-badge{
-  display:none;font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
-  padding:6px 10px;border-radius:999px;box-shadow:var(--shadow-border);
-}
+.mode-badge{display:none;font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;border-radius:999px;box-shadow:var(--shadow-border)}
 @media(min-width:640px){.mode-badge{display:inline-block}}
-.mode-real{color:var(--success)}
-.mode-demo{color:var(--warning)}
-.mode-off{color:var(--danger)}
-
-main.shell{
-  max-width:1400px;margin:0 auto;width:100%;
-  display:grid;grid-template-columns:1fr;gap:16px;
-  padding:16px;
-  padding-left:max(16px,env(safe-area-inset-left));
-  padding-right:max(16px,env(safe-area-inset-right));
-  padding-bottom:max(24px,env(safe-area-inset-bottom));
-  flex:1;
-}
-@media(min-width:960px){
-  main.shell{grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);align-items:start;gap:20px;padding:24px}
-}
-
-.panel{
-  background:var(--bg-elevated);
-  border-radius:var(--radius-xl);
-  padding:20px;
-  box-shadow:var(--shadow-border);
-}
+.mode-real{color:var(--success)}.mode-demo{color:var(--warning)}.mode-off{color:var(--danger)}
+.pane-tabs{display:flex;gap:4px;max-width:1440px;margin:12px auto 0;padding:0 16px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+.pane-tabs button{flex:1;min-height:44px;border:0;background:transparent;color:var(--fg-muted);font:inherit;font-size:14px;font-weight:500;border-radius:var(--radius-sm)}
+.pane-tabs button[aria-pressed="true"]{background:var(--bg-elevated);color:var(--fg);box-shadow:var(--shadow-border)}
+@media(min-width:960px){.pane-tabs{display:none}}
+main.shell{max-width:1440px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr;gap:16px;padding:16px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));padding-bottom:max(24px,env(safe-area-inset-bottom));flex:1}
+@media(min-width:960px){main.shell{grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);align-items:start;gap:20px;padding:24px}}
+.panel{background:var(--bg-elevated);border-radius:var(--radius-xl);padding:20px;box-shadow:var(--shadow-border)}
 @media(min-width:640px){.panel{padding:24px}}
 .stack{display:flex;flex-direction:column;gap:16px;min-width:0}
 .side{min-width:0}
-@media(min-width:960px){.side{position:sticky;top:80px}}
-
+@media(min-width:960px){.side{position:sticky;top:80px}.stack,.side{display:flex !important}}
+@media(max-width:959px){main.shell[data-pane="graph"] .stack{display:none}main.shell[data-pane="console"] .side{display:none}}
 .toggle-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
 .toggle-label{font-size:14px;color:var(--fg-muted)}
 .switch{position:relative;display:inline-flex;height:44px;align-items:center;flex-shrink:0}
 .switch input{position:absolute;opacity:0;width:48px;height:44px;margin:0;cursor:pointer}
-.slider{
-  width:48px;height:28px;border-radius:999px;background:var(--bg-subtle);
-  box-shadow:var(--shadow-border);position:relative;pointer-events:none;
-  transition:background var(--motion-quick) var(--ease-out);
-}
-.slider::before{
-  content:"";position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;
-  background:var(--fg-muted);transition:transform var(--motion-quick) var(--ease-out),background var(--motion-quick) var(--ease-out);
-}
+.slider{width:48px;height:28px;border-radius:999px;background:var(--bg-subtle);box-shadow:var(--shadow-border);position:relative;pointer-events:none;transition:background var(--motion-quick) var(--ease-out)}
+.slider::before{content:"";position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:var(--fg-muted);transition:transform var(--motion-quick) var(--ease-out),background var(--motion-quick) var(--ease-out)}
 .switch input:checked + .slider{background:color-mix(in oklab,var(--success) 25%,var(--bg-subtle))}
 .switch input:checked + .slider::before{transform:translateX(20px);background:var(--success)}
 .switch input:disabled + .slider{opacity:.5}
 .switch input:focus-visible + .slider{outline:2px solid var(--accent);outline-offset:2px}
-
-textarea{
-  width:100%;min-height:96px;resize:vertical;
-  background:var(--bg-subtle);color:var(--fg);
-  border:0;border-radius:var(--radius-md);
-  padding:12px 14px;font:inherit;font-size:16px;line-height:1.5;
-  box-shadow:var(--shadow-border);
-}
+textarea{width:100%;min-height:96px;resize:vertical;background:var(--bg-subtle);color:var(--fg);border:0;border-radius:var(--radius-md);padding:12px 14px;font:inherit;font-size:16px;line-height:1.5;box-shadow:var(--shadow-border)}
 textarea:focus{outline:none;box-shadow:var(--shadow-border-hover)}
-
+.samples{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.samples button{max-width:100%;min-height:36px;padding:8px 12px;border-radius:999px;background:transparent;color:var(--fg-muted);box-shadow:var(--shadow-border);font-size:12px;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.samples button[aria-pressed="true"],.samples button:hover{color:var(--fg);box-shadow:var(--shadow-border-hover)}
 .btn-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px}
-button{
-  font:inherit;border:0;cursor:pointer;
-  min-height:44px;padding:0 18px;border-radius:var(--radius-sm);
-  font-size:14px;font-weight:500;
-  transition:transform var(--motion-quick) ease-out,box-shadow var(--motion-quick) ease-out,color var(--motion-quick) ease-out,opacity var(--motion-quick);
-}
+button{font:inherit;border:0;cursor:pointer;min-height:44px;padding:0 18px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;transition:transform var(--motion-quick) ease-out,box-shadow var(--motion-quick) ease-out,color var(--motion-quick) ease-out,opacity var(--motion-quick)}
 button:disabled{opacity:.5;cursor:not-allowed}
 button:active:not(:disabled){transform:scale(.96)}
 .btn-primary{background:var(--accent);color:var(--accent-fg);min-width:8.5rem}
@@ -162,93 +101,69 @@ button:active:not(:disabled){transform:scale(.96)}
 .btn-approve{background:var(--success);color:var(--accent-fg);min-width:7rem}
 .btn-reject{background:var(--danger);color:var(--accent-fg);min-width:7rem}
 .status-text{font-size:14px;color:var(--fg-muted)}
+.status-text[data-running="true"]{background:linear-gradient(90deg,var(--fg-muted) 0%,var(--fg) 40%,var(--fg-muted) 80%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 1.8s linear infinite}
+@keyframes shimmer{to{background-position:-100% 0}}
 .kbd{display:none;font-size:12px;color:var(--fg-subtle)}
 @media(min-width:640px){.kbd{display:inline}}
-
-#out{
-  min-height:220px;max-height:min(52vh,420px);overflow-y:auto;
-  background:var(--bg-subtle);border-radius:var(--radius-md);
-  padding:16px;white-space:pre-wrap;
-  font-family:var(--font-mono);font-size:13px;line-height:1.6;
-  box-shadow:var(--shadow-border);margin:0;
-}
+#out{min-height:220px;max-height:min(52vh,420px);overflow-y:auto;background:var(--bg-subtle);border-radius:var(--radius-md);padding:16px;white-space:pre-wrap;font-family:var(--font-mono);font-size:13px;line-height:1.6;box-shadow:var(--shadow-border);margin:0}
 .info-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
 @media(min-width:640px){.info-bar{grid-template-columns:repeat(4,1fr)}}
-.info-chip{
-  display:flex;align-items:center;justify-content:space-between;gap:8px;
-  background:var(--bg-subtle);border-radius:var(--radius-md);
-  padding:10px 12px;box-shadow:var(--shadow-border);font-size:12px;color:var(--fg-muted);
-}
+.info-chip{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg-subtle);border-radius:var(--radius-md);padding:10px 12px;box-shadow:var(--shadow-border);font-size:12px;color:var(--fg-muted)}
 .info-chip .val{color:var(--fg);font-family:var(--font-mono);font-weight:600;font-size:16px;font-variant-numeric:tabular-nums}
-
-.hitl-box{display:none}
-.hitl-box[data-open="true"]{display:block}
+.arts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;padding:0;list-style:none}
+.arts li{font-family:var(--font-mono);font-size:12px;color:var(--fg-muted);background:var(--bg-subtle);border-radius:999px;padding:6px 12px;box-shadow:var(--shadow-border)}
+.hitl-overlay{display:none;position:fixed;inset:0;z-index:30;place-items:end center;padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom));background:color-mix(in oklab,var(--bg) 55%,transparent);backdrop-filter:blur(8px)}
+.hitl-overlay[data-open="true"]{display:grid}
+@media(min-width:640px){.hitl-overlay{place-items:center}}
+.hitl-box{width:100%;max-width:28rem}
 .hitl-box p{margin:0 0 8px;font-size:14px}
 .hitl-box .hint{color:var(--fg-muted);font-weight:400}
 .hitl-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}
-
 h2,h3{margin:0 0 16px;font-size:16px;font-weight:500;letter-spacing:-.01em}
 #graph{min-height:280px;background:var(--bg-subtle);border-radius:var(--radius-md);padding:12px;box-shadow:var(--shadow-border)}
 #graph.active{box-shadow:var(--shadow-border-hover)}
-.stepper{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
-.stepper li{display:flex;gap:12px}
-.rail{width:24px;flex-shrink:0;display:flex;flex-direction:column;align-items:center}
-.dot{width:10px;height:10px;margin-top:6px;border-radius:50%;background:var(--border-strong);transition:background var(--motion-quick) var(--ease-out),transform var(--motion-quick)}
-.line{width:1px;flex:1;min-height:20px;background:var(--border)}
-.step-body{flex:1;min-width:0;margin-bottom:8px;padding:8px 12px;border-radius:var(--radius-sm);box-shadow:var(--shadow-border);display:flex;justify-content:space-between;gap:8px;align-items:baseline}
-.step-label{font-size:14px;font-weight:500;color:var(--fg-subtle)}
-.step-state{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-subtle)}
-.stepper li[data-status="done"] .dot{background:var(--success)}
-.stepper li[data-status="done"] .line{background:color-mix(in oklab,var(--success) 50%,transparent)}
-.stepper li[data-status="done"] .step-label{color:var(--fg)}
-.stepper li[data-status="active"] .dot{background:var(--accent);transform:scale(1.1);box-shadow:0 0 0 4px color-mix(in oklab,var(--accent) 22%,transparent)}
-.stepper li[data-status="active"] .step-body{background:var(--bg-subtle)}
-.stepper li[data-status="active"] .step-label{color:var(--fg)}
-.stepper li[data-node="hitl"][data-status="active"] .step-body{background:color-mix(in oklab,var(--warning) 10%,var(--bg-subtle))}
-
+#graph-hub{width:100%;height:auto;max-height:min(52vh,420px)}
+.graph-edge{stroke:var(--border-strong);stroke-width:1.25;fill:none}
+.graph-edge[data-on="active"]{stroke:var(--accent);stroke-width:1.75}
+.graph-edge[data-on="done"]{stroke:color-mix(in oklab,var(--success) 55%,var(--border))}
+.graph-shape{stroke-width:1.5}
+.graph-shape[data-status="idle"]{fill:var(--bg-elevated);stroke:var(--border-strong)}
+.graph-shape[data-status="active"]{fill:var(--accent);stroke:var(--accent)}
+.graph-shape[data-status="done"]{fill:color-mix(in oklab,var(--success) 28%,var(--bg-elevated));stroke:var(--success)}
+.graph-shape[data-node="hitl"][data-status="active"]{fill:color-mix(in oklab,var(--warning) 55%,var(--bg-elevated));stroke:var(--warning)}
+.graph-label{font-size:11px;font-family:var(--font-sans);font-weight:500;fill:var(--fg-subtle)}
+.graph-label[data-on="true"]{fill:var(--fg)}
 #path{font-size:14px;color:var(--fg-muted);margin-top:12px;line-height:1.6}
 #path strong{color:var(--fg);font-weight:500}
 #graph-log{font-size:12px;color:var(--fg-muted);margin-top:8px;max-height:88px;overflow-y:auto;white-space:pre-line;line-height:1.5;font-family:var(--font-mono)}
 .expected-path{margin-top:12px;font-size:12px;color:var(--fg-subtle);line-height:1.5}
 .trace{margin-top:16px;font-size:14px}
-
-button.theme-toggle{
-  width:44px;height:44px;padding:0;flex:0 0 44px;
-  display:grid;place-items:center;position:relative;
-  border-radius:var(--radius-sm);background:transparent;color:inherit;
-  box-shadow:var(--shadow-border);
-}
-button.theme-toggle .icon{grid-area:1/1;display:grid;place-items:center;
-  transition:opacity 300ms cubic-bezier(.2,0,0,1),transform 300ms cubic-bezier(.2,0,0,1),filter 300ms cubic-bezier(.2,0,0,1)}
+button.theme-toggle{width:44px;height:44px;padding:0;flex:0 0 44px;display:grid;place-items:center;position:relative;border-radius:var(--radius-sm);background:transparent;color:inherit;box-shadow:var(--shadow-border)}
+button.theme-toggle .icon{grid-area:1/1;display:grid;place-items:center;transition:opacity 300ms cubic-bezier(.2,0,0,1),transform 300ms cubic-bezier(.2,0,0,1),filter 300ms cubic-bezier(.2,0,0,1)}
 button.theme-toggle .icon-sun{opacity:1;transform:scale(1);filter:blur(0)}
 button.theme-toggle .icon-moon{opacity:0;transform:scale(.25);filter:blur(4px)}
 html[data-theme="light"] button.theme-toggle .icon-moon{opacity:1;transform:scale(1);filter:blur(0)}
 html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale(.25);filter:blur(4px)}
-
 @media (hover:hover) and (pointer:fine){
   *{scrollbar-width:thin;scrollbar-color:transparent transparent}
-  *:not(html):not(body):hover,*:not(html):not(body):focus,*:not(html):not(body):focus-within{
-    scrollbar-color:color-mix(in oklab,currentColor 32%,transparent) transparent}
+  *:not(html):not(body):hover,*:not(html):not(body):focus,*:not(html):not(body):focus-within{scrollbar-color:color-mix(in oklab,currentColor 32%,transparent) transparent}
   *::-webkit-scrollbar{width:8px;height:8px;background:transparent}
   *::-webkit-scrollbar-track,*::-webkit-scrollbar-corner{background:transparent}
   *::-webkit-scrollbar-button{display:none;width:0;height:0}
   *::-webkit-scrollbar-thumb{background-color:transparent;border-radius:999px;border:2px solid transparent;background-clip:padding-box}
-  *:not(html):not(body):hover::-webkit-scrollbar-thumb,
-  *:not(html):not(body):focus::-webkit-scrollbar-thumb,
-  *:not(html):not(body):focus-within::-webkit-scrollbar-thumb{
-    background-color:color-mix(in oklab,currentColor 32%,transparent)}
-  *:not(html):not(body):hover::-webkit-scrollbar-thumb:hover{
-    background-color:color-mix(in oklab,currentColor 52%,transparent)}
+  *:not(html):not(body):hover::-webkit-scrollbar-thumb,*:not(html):not(body):focus::-webkit-scrollbar-thumb,*:not(html):not(body):focus-within::-webkit-scrollbar-thumb{background-color:color-mix(in oklab,currentColor 32%,transparent)}
+  *:not(html):not(body):hover::-webkit-scrollbar-thumb:hover{background-color:color-mix(in oklab,currentColor 52%,transparent)}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .status-text[data-running="true"]{background:none;color:var(--fg-muted);-webkit-background-clip:unset;background-clip:unset}
 }
 </style>
 </head>
 <body>
 <a class="skip" href="#inp">Skip to request</a>
 <header class="app-header">
-  <div class="header-inner header-row">
+  <div class="header-inner">
     <div class="brand">
       <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
         <rect width="32" height="32" rx="7" fill="currentColor"/>
@@ -271,8 +186,11 @@ html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale
     </button>
   </div>
 </header>
-
-<main class="shell">
+<div class="pane-tabs" role="tablist" aria-label="Dashboard panes">
+  <button type="button" data-pane="console" aria-pressed="true">Console</button>
+  <button type="button" data-pane="graph" aria-pressed="false">Graph</button>
+</div>
+<main class="shell" data-pane="console">
   <div class="stack">
     <section class="panel">
       <div class="toggle-row">
@@ -283,8 +201,9 @@ html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale
         </label>
         <span class="toggle-label" id="toggle-text">Live inference</span>
       </div>
-      <label for="inp" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Operational request</label>
+      <label for="inp" class="sr-only">Operational request</label>
       <textarea id="inp" rows="3">Investigate checkout latency spike in us-east.</textarea>
+      <div class="samples" id="samples"></div>
       <div class="btn-row">
         <button class="btn-primary" id="run" type="button">Run AEGIS</button>
         <button class="btn-stop" id="stop" type="button" disabled>Stop</button>
@@ -292,9 +211,9 @@ html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale
         <span class="kbd">Ctrl/⌘+Enter</span>
       </div>
     </section>
-
     <section class="panel">
       <pre id="out" aria-live="polite">Output will appear here...</pre>
+      <ul class="arts" id="arts" hidden></ul>
       <div class="info-bar">
         <div class="info-chip"><span>Steps</span> <span class="val" id="info-steps">0</span></div>
         <div class="info-chip"><span>Confidence</span> <span class="val" id="info-conf">&mdash;</span></div>
@@ -302,42 +221,54 @@ html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale
         <div class="info-chip"><span>Time</span> <span class="val" id="info-time">&mdash;</span></div>
       </div>
     </section>
-
-    <div id="hitl-panel" class="panel hitl-box" role="region" aria-labelledby="hitl-title">
-      <p id="hitl-title"><strong>HITL:</strong> Approve code changes & remediation?</p>
-      <p class="hint">Coder produced a patch. Resume the graph only if the change is safe to apply.</p>
-      <div class="hitl-actions">
-        <button class="btn-approve" id="btn-approve" type="button">Approve</button>
-        <button class="btn-reject" id="btn-reject" type="button">Reject</button>
-        <span class="status-text" id="hitl-status"></span>
-      </div>
-    </div>
   </div>
-
   <aside class="panel side">
     <h3>Live LangGraph Visualizer</h3>
     <div id="graph">
-      <ol class="stepper" id="graph-steps" aria-label="LangGraph execution path">
-        <li data-node="supervisor" data-status="idle"><div class="rail"><span class="dot"></span><span class="line"></span></div><div class="step-body"><span class="step-label">Supervisor</span><span class="step-state">idle</span></div></li>
-        <li data-node="sre_analyst" data-status="idle"><div class="rail"><span class="dot"></span><span class="line"></span></div><div class="step-body"><span class="step-label">SRE Analyst</span><span class="step-state">idle</span></div></li>
-        <li data-node="knowledge" data-status="idle"><div class="rail"><span class="dot"></span><span class="line"></span></div><div class="step-body"><span class="step-label">Knowledge</span><span class="step-state">idle</span></div></li>
-        <li data-node="coder" data-status="idle"><div class="rail"><span class="dot"></span><span class="line"></span></div><div class="step-body"><span class="step-label">Coder</span><span class="step-state">idle</span></div></li>
-        <li data-node="hitl" data-status="idle"><div class="rail"><span class="dot"></span><span class="line"></span></div><div class="step-body"><span class="step-label">HITL gate</span><span class="step-state">idle</span></div></li>
-        <li data-node="evaluator" data-status="idle"><div class="rail"><span class="dot"></span><span class="line"></span></div><div class="step-body"><span class="step-label">Evaluator</span><span class="step-state">idle</span></div></li>
-        <li data-node="communicator" data-status="idle"><div class="rail"><span class="dot"></span></div><div class="step-body"><span class="step-label">Communicator</span><span class="step-state">idle</span></div></li>
+      <svg id="graph-hub" viewBox="0 0 640 430" role="img" aria-label="LangGraph execution path">
+        <title>LangGraph supervisor routing specialists</title>
+        <line class="graph-edge" data-from="supervisor" data-to="sre_analyst" x1="320" y1="198" x2="128" y2="62"/>
+        <line class="graph-edge" data-from="supervisor" data-to="knowledge" x1="320" y1="198" x2="512" y2="62"/>
+        <line class="graph-edge" data-from="supervisor" data-to="coder" x1="320" y1="198" x2="78" y2="214"/>
+        <line class="graph-edge" data-from="supervisor" data-to="hitl" x1="320" y1="198" x2="562" y2="198"/>
+        <line class="graph-edge" data-from="supervisor" data-to="evaluator" x1="320" y1="198" x2="168" y2="356"/>
+        <line class="graph-edge" data-from="supervisor" data-to="communicator" x1="320" y1="198" x2="472" y2="356"/>
+        <line class="graph-edge" data-from="hitl" data-to="evaluator" x1="562" y1="198" x2="168" y2="356"/>
+        <g data-node="sre_analyst"><circle class="graph-shape" data-status="idle" cx="128" cy="62" r="20"/><text class="graph-label" x="128" y="80" text-anchor="middle" dy="18">SRE Analyst</text></g>
+        <g data-node="knowledge"><circle class="graph-shape" data-status="idle" cx="512" cy="62" r="20"/><text class="graph-label" x="512" y="80" text-anchor="middle" dy="18">Knowledge</text></g>
+        <g data-node="coder"><circle class="graph-shape" data-status="idle" cx="78" cy="214" r="20"/><text class="graph-label" x="78" y="232" text-anchor="middle" dy="18">Coder</text></g>
+        <g data-node="supervisor"><circle class="graph-shape" data-status="idle" cx="320" cy="198" r="30"/><text class="graph-label" x="320" y="228" text-anchor="middle" dy="18">Supervisor</text></g>
+        <g data-node="hitl"><rect class="graph-shape" data-node="hitl" data-status="idle" x="542" y="178" width="40" height="40" rx="5" transform="rotate(45 562 198)"/><text class="graph-label" x="562" y="218" text-anchor="middle" dy="18">HITL</text></g>
+        <g data-node="evaluator"><circle class="graph-shape" data-status="idle" cx="168" cy="356" r="20"/><text class="graph-label" x="168" y="374" text-anchor="middle" dy="18">Evaluator</text></g>
+        <g data-node="communicator"><circle class="graph-shape" data-status="idle" cx="472" cy="356" r="20"/><text class="graph-label" x="472" y="374" text-anchor="middle" dy="18">Communicator</text></g>
+      </svg>
+      <ol class="sr-only" id="graph-steps" aria-label="LangGraph execution path">
+        <li data-node="supervisor" data-status="idle">Supervisor idle</li>
+        <li data-node="sre_analyst" data-status="idle">SRE Analyst idle</li>
+        <li data-node="knowledge" data-status="idle">Knowledge idle</li>
+        <li data-node="coder" data-status="idle">Coder idle</li>
+        <li data-node="hitl" data-status="idle">HITL idle</li>
+        <li data-node="evaluator" data-status="idle">Evaluator idle</li>
+        <li data-node="communicator" data-status="idle">Communicator idle</li>
       </ol>
     </div>
-    <div id="path"></div>
+    <div id="path"><em style="color:var(--fg-subtle)">Graph will animate live during run</em></div>
     <div id="graph-log"></div>
-    <div class="trace">
-      <a href="https://smith.langchain.com" target="_blank" rel="noreferrer">View full trace in LangSmith (aegis-production) &#8599;</a>
-    </div>
-    <div class="expected-path">
-      Expected path: supervisor &#8594; sre_analyst &#8594; supervisor &#8594; knowledge &#8594; supervisor &#8594; coder &#8594; [HITL] &#8594; evaluator &#8594; communicator
-    </div>
+    <div class="trace"><a href="https://smith.langchain.com" target="_blank" rel="noreferrer">View full trace in LangSmith (aegis-production) ↗</a></div>
+    <p class="expected-path">Expected path: supervisor → sre_analyst → supervisor → knowledge → supervisor → coder → [HITL] → evaluator → communicator</p>
   </aside>
 </main>
-
+<div class="hitl-overlay" id="hitl-overlay" data-open="false">
+  <div id="hitl-panel" class="panel hitl-box" role="dialog" aria-modal="true" aria-labelledby="hitl-title">
+    <p id="hitl-title"><strong>HITL:</strong> Approve code changes & remediation?</p>
+    <p class="hint">Coder produced a patch. Resume the graph only if the change is safe to apply.</p>
+    <div class="hitl-actions">
+      <button class="btn-approve" id="btn-approve" type="button">Approve</button>
+      <button class="btn-reject" id="btn-reject" type="button">Reject</button>
+      <span class="status-text" id="hitl-status"></span>
+    </div>
+  </div>
+</div>
 <script>
 const $ = s => document.querySelector(s);
 const out = $('#out');
@@ -351,6 +282,11 @@ let timerInterval = null;
 let graphAvailable = false;
 let isDemoMode = true;
 const NODE_ORDER = ['supervisor','sre_analyst','knowledge','coder','hitl','evaluator','communicator'];
+const SAMPLES = [
+  'Investigate checkout latency spike in us-east.',
+  'Why are 5xx errors climbing on the payments edge?',
+  'Draft a runbook for Redis failover in us-east.'
+];
 
 (function(){
   var k = "aegis-theme";
@@ -375,6 +311,35 @@ const NODE_ORDER = ['supervisor','sre_analyst','knowledge','coder','hitl','evalu
     var initial = document.documentElement.getAttribute("data-theme");
     apply(initial === "light" || initial === "dark" ? initial : "dark");
   }
+})();
+
+(function(){
+  const shell = document.querySelector('main.shell');
+  document.querySelectorAll('.pane-tabs button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var pane = btn.getAttribute('data-pane');
+      shell.setAttribute('data-pane', pane);
+      document.querySelectorAll('.pane-tabs button').forEach(function(b){
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+    });
+  });
+})();
+
+(function(){
+  const box = document.getElementById('samples');
+  const inp = document.getElementById('inp');
+  SAMPLES.forEach(function(p){
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = p;
+    b.setAttribute('aria-pressed', p === inp.value ? 'true' : 'false');
+    b.addEventListener('click', function(){
+      inp.value = p;
+      box.querySelectorAll('button').forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    });
+    box.appendChild(b);
+  });
 })();
 
 fetch('/health').then(r => r.json()).then(h => {
@@ -424,14 +389,28 @@ function renderGraph(steps) {
   const el = $('#graph');
   const last = steps.length ? steps[steps.length - 1] : '';
   NODE_ORDER.forEach(function(id) {
-    const li = document.querySelector('#graph-steps li[data-node="'+id+'"]');
-    if (!li) return;
     var status = 'idle';
     if (id === last) status = 'active';
     else if (steps.indexOf(id) !== -1) status = 'done';
-    li.setAttribute('data-status', status);
-    var st = li.querySelector('.step-state');
-    if (st) st.textContent = status === 'active' ? 'live' : status;
+    document.querySelectorAll('#graph-hub [data-node="'+id+'"] .graph-shape, #graph-hub .graph-shape[data-node="'+id+'"]').forEach(function(shape){
+      shape.setAttribute('data-status', status);
+    });
+    document.querySelectorAll('#graph-hub g[data-node="'+id+'"] .graph-label').forEach(function(lab){
+      lab.setAttribute('data-on', status === 'idle' ? 'false' : 'true');
+    });
+    const li = document.querySelector('#graph-steps li[data-node="'+id+'"]');
+    if (li) {
+      li.setAttribute('data-status', status);
+      li.textContent = li.textContent.replace(/idle|live|done/g, '') + ' ' + (status === 'active' ? 'live' : status);
+    }
+  });
+  document.querySelectorAll('#graph-hub .graph-edge').forEach(function(edge){
+    var from = edge.getAttribute('data-from');
+    var to = edge.getAttribute('data-to');
+    var on = '';
+    if (to === last && steps.indexOf(from) !== -1) on = 'active';
+    else if (steps.indexOf(from) !== -1 && steps.indexOf(to) !== -1) on = 'done';
+    edge.setAttribute('data-on', on);
   });
   if (el) el.classList.toggle('active', steps.length > 0);
 }
@@ -449,10 +428,13 @@ function addStep(step, description) {
     logEl.scrollTop = logEl.scrollHeight;
   }
   if (step === 'hitl') {
+    const overlay = $('#hitl-overlay');
     const hitl = $('#hitl-panel');
+    if (overlay) overlay.setAttribute('data-open', 'true');
     if (hitl) {
-      hitl.style.display = 'block';
       hitl.setAttribute('data-open', 'true');
+      const btn = $('#btn-approve');
+      if (btn) btn.focus();
     }
   }
 }
@@ -462,12 +444,30 @@ function updateTimer() {
   $('#info-time').textContent = ((Date.now() - startTime) / 1000).toFixed(1) + 's';
 }
 
+function setArts(list) {
+  const ul = $('#arts');
+  if (!ul) return;
+  ul.innerHTML = '';
+  if (!list || !list.length) { ul.hidden = true; return; }
+  list.forEach(function(n){
+    const li = document.createElement('li');
+    li.textContent = n;
+    ul.appendChild(li);
+  });
+  ul.hidden = false;
+}
+
+function hideHitl() {
+  const overlay = $('#hitl-overlay');
+  const hitl = $('#hitl-panel');
+  if (overlay) overlay.setAttribute('data-open', 'false');
+  if (hitl) hitl.setAttribute('data-open', 'false');
+}
+
 async function approveHITL(approved) {
-  const hitlPanel = $('#hitl-panel');
   const btnApprove = $('#btn-approve');
   const btnReject = $('#btn-reject');
   const hitlStatus = $('#hitl-status');
-
   btnApprove.disabled = true;
   btnReject.disabled = true;
   hitlStatus.textContent = 'sending...';
@@ -489,8 +489,7 @@ async function approveHITL(approved) {
     }
     out.scrollTop = out.scrollHeight;
     setTimeout(() => {
-      hitlPanel.style.display = 'none';
-      hitlPanel.setAttribute('data-open', 'false');
+      hideHitl();
       btnApprove.disabled = false;
       btnReject.disabled = false;
       hitlStatus.textContent = '';
@@ -503,7 +502,6 @@ async function approveHITL(approved) {
     : '\n\n[HITL REJECTED] Human rejected the proposed changes. Stopping.\n';
   out.textContent += msg;
   out.scrollTop = out.scrollHeight;
-
   const pathEl = $('#path');
   if (pathEl) pathEl.innerHTML += approved ? ' &#8594; <span style="color:var(--success)">approved</span>' : ' &#8594; <span style="color:var(--danger)">rejected</span>';
 
@@ -511,8 +509,7 @@ async function approveHITL(approved) {
     hitlStatus.textContent = 'rejected';
     hitlStatus.style.color = 'var(--danger)';
     setTimeout(() => {
-      hitlPanel.style.display = 'none';
-      hitlPanel.setAttribute('data-open', 'false');
+      hideHitl();
       btnApprove.disabled = false;
       btnReject.disabled = false;
       hitlStatus.textContent = '';
@@ -548,7 +545,7 @@ async function approveHITL(approved) {
             addStep(j.step, j.description || '');
           }
           if (j.confidence !== undefined) $('#info-conf').textContent = j.confidence + '%';
-          if (j.artifacts) { artifactCount = j.artifacts.length; $('#info-arts').textContent = artifactCount; }
+          if (j.artifacts) { artifactCount = j.artifacts.length; $('#info-arts').textContent = artifactCount; setArts(j.artifacts); }
           if (j.error) out.textContent += '\n[error] ' + j.error;
         } catch (e) {}
       }
@@ -560,8 +557,7 @@ async function approveHITL(approved) {
     hitlStatus.style.color = 'var(--danger)';
   }
   setTimeout(() => {
-    hitlPanel.style.display = 'none';
-    hitlPanel.setAttribute('data-open', 'false');
+    hideHitl();
     btnApprove.disabled = false;
     btnReject.disabled = false;
     hitlStatus.textContent = '';
@@ -573,13 +569,8 @@ async function runStream() {
   $('#run').disabled = true;
   $('#stop').disabled = false;
   $('#status').textContent = 'running...';
-
-  const hitl = $('#hitl-panel');
-  if (hitl) {
-    hitl.style.display = 'none';
-    hitl.setAttribute('data-open', 'false');
-  }
-
+  $('#status').setAttribute('data-running', 'true');
+  hideHitl();
   currentPath = [];
   stepCount = 0;
   artifactCount = 0;
@@ -588,19 +579,17 @@ async function runStream() {
   $('#info-conf').textContent = '\u2014';
   $('#info-arts').textContent = '0';
   $('#info-time').textContent = '0.0s';
+  setArts([]);
   const pathEl = $('#path');
   if (pathEl) pathEl.innerHTML = '';
   const logEl = $('#graph-log');
   if (logEl) logEl.textContent = '';
-
   renderGraph(currentPath);
   clearInterval(timerInterval);
   timerInterval = setInterval(updateTimer, 200);
-
   const task = $('#inp').value;
   lastThread = 'web-' + Date.now();
   controller = new AbortController();
-
   try {
     const res = await fetch('/stream', {
       method: 'POST',
@@ -608,11 +597,9 @@ async function runStream() {
       body: JSON.stringify({input: task, thread_id: lastThread, force_demo: isDemoMode}),
       signal: controller.signal
     });
-
     const reader = res.body.getReader();
     const dec = new TextDecoder();
     let buf = '';
-
     while (true) {
       const {done, value} = await reader.read();
       if (done) break;
@@ -632,7 +619,7 @@ async function runStream() {
             addStep(j.step, j.description || '');
           }
           if (j.confidence !== undefined) $('#info-conf').textContent = j.confidence + '%';
-          if (j.artifacts) { artifactCount = j.artifacts.length; $('#info-arts').textContent = artifactCount; }
+          if (j.artifacts) { artifactCount = j.artifacts.length; $('#info-arts').textContent = artifactCount; setArts(j.artifacts); }
           if (j.error) out.textContent += '\n[error] ' + j.error;
         } catch (e) {}
       }
@@ -645,6 +632,7 @@ async function runStream() {
     $('#status').textContent = 'stopped';
     clearInterval(timerInterval);
   } finally {
+    $('#status').setAttribute('data-running', 'false');
     $('#run').disabled = false;
     $('#stop').disabled = true;
     controller = null;
@@ -655,7 +643,6 @@ $('#run').onclick = runStream;
 $('#stop').onclick = () => { if (controller) controller.abort(); };
 $('#btn-approve').onclick = () => approveHITL(true);
 $('#btn-reject').onclick = () => approveHITL(false);
-
 document.addEventListener('keydown', function(e) {
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
     e.preventDefault();
@@ -663,12 +650,7 @@ document.addEventListener('keydown', function(e) {
   }
   if (e.key === 'Escape' && controller) controller.abort();
 });
-
-window.onload = async () => {
-  renderGraph([]);
-  const pathEl = $('#path');
-  if (pathEl) pathEl.innerHTML = '<em style="color:var(--fg-subtle)">Graph will animate live during run</em>';
-};
+window.onload = async () => { renderGraph([]); };
 window.approveHITL = approveHITL;
 </script>
 </body>
