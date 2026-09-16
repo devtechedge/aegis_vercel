@@ -439,7 +439,6 @@ async def ui():
 <meta property="og:url" content="https://aegis-agent-api.vercel.app/ui">
 <meta property="og:title" content="AEGIS v0.4.2">
 <meta property="og:description" content="Autonomous Enterprise Graph Intelligence System. A LangGraph supervisor routes specialist sub-agents through human-in-the-loop gates and posts a fully traced, auditable result.">
-<meta name="twitter:card" content="summary">
 <meta property="og:image" content="https://aegis-agent-api.vercel.app/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
