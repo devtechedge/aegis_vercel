@@ -21,7 +21,7 @@ Open [aegis-agent-api.vercel.app/ui](https://aegis-agent-api.vercel.app/ui) and 
 
 **What you'll see:**
 
-- **Real-time Mermaid graph** animating the execution path: Supervisor → SRE Analyst → Knowledge → Coder → [HITL] → Evaluator → Communicator
+- **Real-time LangGraph visualizer** animating the execution path: Supervisor → SRE Analyst → Knowledge → Coder → [HITL] → Evaluator → Communicator
 - **Streaming agent output** - each specialist's findings appear as they execute, with confidence scores and artifact counts
 - **Human-in-the-Loop gate** - the Coder produces a patch, pauses for your approval, then the Evaluator and Communicator complete the flow
 - **Demo / Live toggle** - Demo mode runs an instant simulation; Live mode connects to the real LangGraph with your API keys
@@ -43,7 +43,7 @@ Public demo threat model: [SECURITY.md](SECURITY.md). Demo/sim is public by defa
 ## Architecture
 
 ```
-[Next.js UI / LangGraph Studio] <-SSE-> [LangServe FastAPI /api]
+[FastAPI dashboard / LangGraph Studio] <-SSE-> [LangServe FastAPI /api]
                                         |
                               [LangGraph Supervisor]
                    /     |      |       |       |      \

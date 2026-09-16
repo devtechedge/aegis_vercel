@@ -25,7 +25,7 @@ def test_health_ok():
     assert r.status_code == 200
     body = r.json()
     assert body["status"] == "ok"
-    assert body["version"] == "0.4.2"
+    assert body["version"] == "0.5.0"
     assert "llm_keys" in body
     assert set(body["llm_keys"]) >= {"google", "openai", "anthropic", "langsmith"}
 
@@ -46,6 +46,13 @@ def test_ui_serves_branded_dashboard():
     assert "rel=\"icon\"" in html
     assert "Run AEGIS" in html
     assert "Live LangGraph Visualizer" in html
+    assert "data-theme" in html
+    assert "theme-toggle" in html
+    assert "aegis-theme" in html
+    assert "scrollbar-color" in html
+    assert "prefers-reduced-motion" in html
+    assert "HITL:" in html
+    assert 'id="demo-toggle"' in html
 
 
 def test_demo_stream_emits_hitl_and_done():

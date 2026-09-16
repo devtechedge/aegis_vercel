@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.5.0] - 2026-09-16
+
+### Changed
+- **Dashboard restyle** - cool titanium light/dark tokens, overlay hover-reveal scrollbars, and a sticky operations chrome. Removed cyan-indigo glow, animated gradient blobs, and gradient primary buttons.
+- **Responsive console** - single-column stack on phones and tablets; two-column console + visualizer from 960px. Touch targets are at least 44px.
+- **LangGraph visualizer** - live stepper (idle / live / done) instead of a blocking Mermaid CDN load, so first paint is no longer gated on a multi-megabyte graph library.
+- **Accessibility** - skip link, labelled request field, visible focus, `aria-live` on stream and status, `prefers-reduced-motion`, keyboard Run (Ctrl/⌘+Enter) and Stop (Escape).
+- **Demo stream pacing** - `/stream` demo mode yields tokens with short delays so the dashboard can animate instead of painting the full transcript in one frame.
+
+### Added
+- Dashboard HTML lives in `apps/api/static/ui.html` and is served by `/ui` with the current version substituted.
+
+---
+
 ## [0.4.2] - 2026-07-01
 
 ### Fixed
