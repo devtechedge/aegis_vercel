@@ -433,6 +433,13 @@ async def ui():
 <script>(function(){try{var k="aegis-theme";var t=localStorage.getItem(k);if(t!=="light"&&t!=="dark")t="dark";var r=document.documentElement;r.setAttribute("data-theme",t);r.style.colorScheme=t;if(t==="dark")r.classList.add("dark");else r.classList.remove("dark");}catch(e){document.documentElement.setAttribute("data-theme","dark");}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AEGIS v0.4.2</title>
+<meta name="description" content="Autonomous Enterprise Graph Intelligence System. A LangGraph supervisor routes specialist sub-agents through human-in-the-loop gates and posts a fully traced, auditable result.">
+<!-- Shared links (LinkedIn, Slack, email) render a bare URL without these. -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://aegis-agent-api.vercel.app/ui">
+<meta property="og:title" content="AEGIS v0.4.2">
+<meta property="og:description" content="Autonomous Enterprise Graph Intelligence System. A LangGraph supervisor routes specialist sub-agents through human-in-the-loop gates and posts a fully traced, auditable result.">
+<meta name="twitter:card" content="summary">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23060a14'/><text x='16' y='23' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='700' font-size='20' fill='%2338bdf8'>A</text></svg>">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
