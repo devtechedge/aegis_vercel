@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.6.0] - 2026-09-17
+
+### Changed
+- **Operations console** - spatial LangGraph hub (supervisor plus specialists) replaces the vertical stepper, with live edge highlighting as the run routes.
+- **HITL gate** - approval is a focused dialog over the console instead of an inline panel, with the Approve control focused on open.
+- **Mobile panes** - Console and Graph are tabbed below 960px so the visualizer is one tap away instead of below the fold.
+- **Sample requests** - three starter incidents fill the request field without changing API behavior.
+- **Artifact chips** - completed runs list produced files under the stream.
+- **Stream status** - running state uses a reduced-motion-safe shimmer; output still streams through the same SSE contract (`/stream`, `/threads/{id}/resume/stream`).
+
+### Added
+- Dashboard tests cover the hub graph marker while keeping the v0.5.0 chrome assertions (theme toggle, overlay scrollbars, HITL copy).
+
+---
+
 ## [0.5.0] - 2026-09-16
 
 ### Changed
