@@ -108,7 +108,7 @@ docker-compose -f infra/docker-compose.yml up --build
 
 | Endpoint | Method | Purpose |
 |---|---|---|
-| `/ui` | GET | Live dashboard (SSE, Mermaid, HITL) |
+| `/ui` | GET | Live dashboard (SSE, visualizer, HITL) |
 | `/stream` | POST | Streaming inference (SSE) |
 | `/invoke` | POST | Single-shot inference (JSON) |
 | `/threads/{id}/resume` | POST | Resume after HITL (JSON) |
