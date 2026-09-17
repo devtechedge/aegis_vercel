@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.9.5] - 2026-09-17
+
+### Changed
+- **HITL gate** — approval card is centered in the viewport so Approve/Reject are easy to find. Dashboard behind it stays undimmed.
+
+---
+
 ## [0.9.4] - 2026-09-17
 
 ### Changed

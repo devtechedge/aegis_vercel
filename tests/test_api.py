@@ -25,7 +25,7 @@ def test_health_ok():
     assert r.status_code == 200
     body = r.json()
     assert body["status"] == "ok"
-    assert body["version"] == "0.9.4"
+    assert body["version"] == "0.9.5"
     assert "llm_keys" in body
     assert set(body["llm_keys"]) >= {"google", "openai", "anthropic", "langsmith"}
 
@@ -57,6 +57,7 @@ def test_ui_serves_branded_dashboard():
     assert "scrollbar-color" in html
     assert "prefers-reduced-motion" in html
     assert "HITL:" in html
+    assert "place-items:center" in html
     assert 'aria-modal="false"' in html
     assert "pointer-events:none" in html
     assert "background:transparent" in html
