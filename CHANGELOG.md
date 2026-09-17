@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.9.4] - 2026-09-17
+
+### Changed
+- **HITL gate** — the overlay no longer dims or blurs the dashboard. The dialog docks at the bottom so Supervisor → Communicator stays visible; title/hint recede, Approve and Reject stay full-contrast.
+
+---
+
 ## [0.9.3] - 2026-09-17
 
 ### Changed
