@@ -15,23 +15,26 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://aegis-agent-api.vercel.app/og.png">
-<meta name="theme-color" content="#0a0a0b">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230a0a0b'/><rect x='1' y='1' width='30' height='30' rx='6' fill='none' stroke='%23d4d7de' stroke-width='1.25'/><path d='M16 7.2l7.4 3.1v6.2c0 4.1-2.8 7.9-7.4 9.3-4.6-1.4-7.4-5.2-7.4-9.3v-6.2L16 7.2z' fill='none' stroke='%23d4d7de' stroke-width='1.4'/><text x='16' y='20.2' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='600' font-size='11' fill='%23d4d7de'>A</text></svg>">
+<meta name="theme-color" content="#07080a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2307080a'/><rect x='1' y='1' width='30' height='30' rx='6' fill='none' stroke='%23d4d7de' stroke-width='1.25'/><path d='M16 7.2l7.4 3.1v6.2c0 4.1-2.8 7.9-7.4 9.3-4.6-1.4-7.4-5.2-7.4-9.3v-6.2L16 7.2z' fill='none' stroke='%23d4d7de' stroke-width='1.4'/><text x='16' y='20.2' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='600' font-size='11' fill='%23d4d7de'>A</text></svg>">
 <style>
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 body{margin:0}
 :root,[data-theme="dark"]{
-  --bg:#0a0a0b;--bg-elevated:#121214;--bg-subtle:#1a1a1e;
-  --fg:#f4f4f5;--fg-muted:#a1a1aa;--fg-subtle:#71717a;
+  --bg:#07080a;--bg-elevated:#101217;--bg-subtle:#171b22;
+  --fg:#e8eaef;--fg-muted:#8b929e;--fg-subtle:#6b7280;
   --border:color-mix(in oklab,var(--fg) 12%,transparent);
   --border-strong:color-mix(in oklab,var(--fg) 22%,transparent);
-  --accent:#d4d7de;--accent-fg:#0a0a0b;
+  --accent:#c5ccd6;--accent-fg:#07080a;
   --success:#4adea3;--warning:#e0b35a;--danger:#f07171;--info:#9aa6b8;
   --shadow-border:0 0 0 1px rgba(255,255,255,.08);
   --shadow-border-hover:0 0 0 1px rgba(255,255,255,.13);
-  --font-sans:"Segoe UI",ui-sans-serif,system-ui,-apple-system,sans-serif;
-  --font-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --font-sans:"IBM Plex Sans","Segoe UI",ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   --radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-xl:24px;
   --motion-quick:150ms;--motion-fast:250ms;--ease-out:cubic-bezier(.22,1,.36,1);
   color-scheme:dark;
@@ -106,9 +109,14 @@ button:active:not(:disabled){transform:scale(.96)}
 @media(min-width:640px){.kbd{display:inline}}
 .stream-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
 .stream-head h2{margin:0;font-size:16px;font-weight:500;letter-spacing:-.01em}
-#out{min-height:220px;max-height:min(52vh,420px);overflow-y:auto;background:var(--bg-subtle);border-radius:var(--radius-md);padding:16px;white-space:pre-wrap;font-family:var(--font-mono);font-size:13px;line-height:1.6;box-shadow:var(--shadow-border);margin:0}
+#out{min-height:220px;max-height:min(52vh,420px);overflow-y:auto;background:var(--bg-subtle);border-radius:var(--radius-md);padding:16px;font-family:var(--font-mono);font-size:13px;line-height:1.6;box-shadow:var(--shadow-border);margin:0;display:flex;flex-direction:column;gap:12px}
 #out[data-empty="true"]{color:var(--fg-subtle)}
-#out[data-running="true"]::after{content:"▍";margin-left:2px;color:var(--accent);animation:caret 1s steps(1) infinite}
+#out[data-running="true"]::after{content:"▍";margin-left:2px;color:var(--accent);animation:caret 1s steps(1) infinite;align-self:flex-start}
+.out-empty{margin:0;color:var(--fg-subtle);white-space:pre-wrap}
+.out-card{background:color-mix(in oklab,var(--bg-elevated) 70%,transparent);border-radius:var(--radius-md);padding:10px 12px;box-shadow:var(--shadow-border)}
+.out-card .kicker{font-family:var(--font-sans);font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-muted);margin:0 0 6px}
+.out-card .desc{font-family:var(--font-sans);font-size:12px;color:var(--fg-muted);margin:0 0 6px}
+.out-card .out-body{margin:0;white-space:pre-wrap;font-family:var(--font-mono);font-size:13px;line-height:1.6}
 @keyframes caret{50%{opacity:0}}
 .info-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
 @media(min-width:640px){.info-bar{grid-template-columns:repeat(4,1fr)}}
@@ -270,7 +278,7 @@ html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale
         <div class="info-chip"><span>Time</span> <span class="val" id="info-time">&mdash;</span></div>
       </div>
       <div id="activity" hidden></div>
-      <pre id="out" aria-live="polite" data-empty="true">Output will appear here...</pre>
+      <div id="out" aria-live="polite" data-empty="true"><p class="out-empty">Output will appear here...</p></div>
       <ul class="arts" id="arts" hidden></ul>
     </section>
   </div>
@@ -279,6 +287,8 @@ html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale
     <div id="graph">
       <svg id="graph-hub" viewBox="0 0 440 400" role="img" aria-label="LangGraph execution path" overflow="visible">
         <title>LangGraph supervisor routing specialists</title>
+        <circle cx="220" cy="176" r="118" fill="none" stroke="currentColor" stroke-opacity=".06"/>
+        <circle cx="220" cy="176" r="78" fill="none" stroke="currentColor" stroke-opacity=".05"/>
         <path class="graph-edge" data-from="supervisor" data-to="sre_analyst" d="M190 152 L90 56"/>
         <path class="graph-edge" data-from="supervisor" data-to="knowledge" d="M250 152 L350 56"/>
         <path class="graph-edge" data-from="supervisor" data-to="coder" d="M144 176 L128 182"/>
@@ -381,6 +391,52 @@ const SAMPLES = [
   'Why are 5xx errors climbing on the payments edge?',
   'Draft a runbook for Redis failover in us-east.'
 ];
+const NODE_LABELS = {supervisor:'Supervisor',sre_analyst:'SRE Analyst',knowledge:'Knowledge',coder:'Coder',hitl:'HITL',evaluator:'Evaluator',communicator:'Communicator',stream:'Stream',error:'Error'};
+function clearOut(){ out.innerHTML = ''; }
+function setOutPlaceholder(text){
+  clearOut();
+  const p = document.createElement('p');
+  p.className = 'out-empty';
+  p.textContent = text;
+  out.appendChild(p);
+  out.setAttribute('data-empty','true');
+}
+function ensureCard(step, description){
+  const last = out.querySelector('.out-card:last-of-type');
+  const lastBody = last && last.querySelector('.out-body');
+  if (last && last.getAttribute('data-node') === step && lastBody && !lastBody.textContent) {
+    const d = last.querySelector('.desc');
+    if (description && d) d.textContent = description;
+    return last;
+  }
+  const article = document.createElement('article');
+  article.className = 'out-card';
+  article.setAttribute('data-node', step);
+  const kicker = document.createElement('div');
+  kicker.className = 'kicker';
+  kicker.textContent = NODE_LABELS[step] || step;
+  article.appendChild(kicker);
+  if (description) {
+    const d = document.createElement('p');
+    d.className = 'desc';
+    d.textContent = description;
+    article.appendChild(d);
+  }
+  const body = document.createElement('pre');
+  body.className = 'out-body';
+  article.appendChild(body);
+  out.appendChild(article);
+  return article;
+}
+function appendToken(token){
+  let last = out.querySelector('.out-card:last-of-type .out-body');
+  if (!last) {
+    ensureCard('stream', '');
+    last = out.querySelector('.out-card:last-of-type .out-body');
+  }
+  last.textContent += token;
+  out.scrollTop = out.scrollHeight;
+}
 
 (function(){
   var k = "aegis-theme";
@@ -390,7 +446,7 @@ const SAMPLES = [
     r.setAttribute("data-theme", t);
     r.style.colorScheme = t;
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute("content", t === "dark" ? "#0a0a0b" : "#e3e8ee");
+    if (meta) meta.setAttribute("content", t === "dark" ? "#07080a" : "#e3e8ee");
     if (btn) {
       btn.setAttribute("aria-label", t === "dark" ? "Switch to light mode" : "Switch to dark mode");
       btn.title = t === "dark" ? "Light mode" : "Dark mode";
@@ -469,8 +525,7 @@ fetch('/health').then(r => r.json()).then(h => {
     $('#toggle-text').textContent = 'Live inference';
     $('#status').textContent = 'demo mode';
     setStreamHint('demo');
-    out.textContent = 'AEGIS running in demo simulation mode.\n\nLive inference requires LIVE_MODE=true plus an LLM key on the server.';
-    out.setAttribute('data-empty', 'true');
+    setOutPlaceholder('AEGIS running in demo simulation mode.\n\nLive inference requires LIVE_MODE=true plus an LLM key on the server.');
     isDemoMode = true;
   }
 }).catch(() => {
@@ -571,6 +626,7 @@ function addStep(step, description) {
   if (step === 'supervisor' || step === 'hitl' || currentPath.indexOf(step) === -1) {
     currentPath.push(step);
   }
+  ensureCard(step, description || '');
   renderGraph(currentPath);
   const pathEl = $('#path');
   if (pathEl) pathEl.innerHTML = '<strong>Current path:</strong><br>' + currentPath.join(' &#8594; ');
@@ -635,13 +691,13 @@ async function approveHITL(approved) {
   if (isDemoMode) {
     await new Promise(r => setTimeout(r, 600));
     if (approved) {
-      out.textContent += '\n\n[HITL APPROVED] Human approved code changes. Resuming graph execution...';
+      ensureCard('hitl',''); appendToken('[HITL APPROVED] Human approved code changes. Resuming graph execution...');
       hitlStatus.textContent = 'approved';
       hitlStatus.style.color = 'var(--success)';
       const pathEl = $('#path');
       if (pathEl) pathEl.innerHTML += ' &#8594; <span style="color:var(--success)">approved</span>';
     } else {
-      out.textContent += '\n\n[HITL REJECTED] Human rejected the proposed changes. Investigation stopped.';
+      ensureCard('hitl',''); appendToken('[HITL REJECTED] Human rejected the proposed changes. Investigation stopped.');
       hitlStatus.textContent = 'rejected';
       hitlStatus.style.color = 'var(--danger)';
       const pathEl = $('#path');
@@ -660,7 +716,7 @@ async function approveHITL(approved) {
   const msg = approved
     ? '\n\n[HITL APPROVED] Human approved code changes. Resuming graph execution...\n'
     : '\n\n[HITL REJECTED] Human rejected the proposed changes. Stopping.\n';
-  out.textContent += msg;
+  ensureCard('hitl',''); appendToken(msg);
   out.scrollTop = out.scrollHeight;
   const pathEl = $('#path');
   if (pathEl) pathEl.innerHTML += approved ? ' &#8594; <span style="color:var(--success)">approved</span>' : ' &#8594; <span style="color:var(--danger)">rejected</span>';
@@ -698,7 +754,7 @@ async function approveHITL(approved) {
         if (d === '[DONE]') continue;
         try {
           const j = JSON.parse(d);
-          if (j.token) { out.textContent += j.token; out.scrollTop = out.scrollHeight; }
+          if (j.token) { appendToken(j.token); }
           if (j.step) {
             stepCount++;
             $('#info-steps').textContent = stepCount;
@@ -706,7 +762,7 @@ async function approveHITL(approved) {
           }
           if (j.confidence !== undefined) $('#info-conf').textContent = j.confidence + '%';
           if (j.artifacts) { artifactCount = j.artifacts.length; $('#info-arts').textContent = artifactCount; setArts(j.artifacts); }
-          if (j.error) out.textContent += '\n[error] ' + j.error;
+          if (j.error) appendToken('\n[error] ' + j.error);
         } catch (e) {}
       }
     }
@@ -725,7 +781,7 @@ async function approveHITL(approved) {
 }
 
 async function runStream() {
-  out.textContent = '';
+  clearOut();
   out.setAttribute('data-empty', 'false');
   out.setAttribute('data-running', 'true');
   $('#run').disabled = true;
@@ -776,7 +832,7 @@ async function runStream() {
         if (d === '[DONE]') continue;
         try {
           const j = JSON.parse(d);
-          if (j.token) { out.textContent += j.token; out.scrollTop = out.scrollHeight; }
+          if (j.token) { appendToken(j.token); }
           if (j.step) {
             stepCount++;
             $('#info-steps').textContent = stepCount;
@@ -784,7 +840,7 @@ async function runStream() {
           }
           if (j.confidence !== undefined) $('#info-conf').textContent = j.confidence + '%';
           if (j.artifacts) { artifactCount = j.artifacts.length; $('#info-arts').textContent = artifactCount; setArts(j.artifacts); }
-          if (j.error) out.textContent += '\n[error] ' + j.error;
+          if (j.error) appendToken('\n[error] ' + j.error);
         } catch (e) {}
       }
     }
@@ -794,7 +850,7 @@ async function runStream() {
     setStreamHint('done');
   } catch (e) {
     if (e.name !== 'AbortError') {
-      out.textContent += '\n[error] ' + e;
+      appendToken('\n[error] ' + e);
       setStreamHint('error');
     } else {
       setStreamHint('stopped');
