@@ -32,7 +32,7 @@ Repos stay **public until deliberately made private**. Honest demo threat model 
 ## 1. Authentication
 
 **Controls (2026-09-06)**
-- `LIVE_MODE` (default off): live LangGraph/LLM only when true **and** an LLM key is present; otherwise force demo/sim.
+- `LIVE_MODE` (default **on** when an LLM key is present): live LangGraph/LLM unless set to `false`/`0`/`off`. No key → force demo/sim.
 - `PUBLIC_RUN_TOKEN`: when set under live mode, require matching `x-run-token` on `/invoke`, `/stream`, resume.
 - `ENABLE_DEBUG` (default off): `/debug` returns 404 unless enabled.
 - `/health` reports key *presence* booleans + `live_mode` - never secret values.

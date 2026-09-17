@@ -1,4 +1,4 @@
-# Vercel Deploy Notes - AEGIS v0.9.2
+# Vercel Deploy Notes - AEGIS v0.9.3
 
 Live: https://aegis-agent-api.vercel.app/ui
 
@@ -21,6 +21,8 @@ TAVILY_API_KEY=...
 # Optional:
 ANTHROPIC_API_KEY=...
 GOOGLE_API_KEY=...
+# Optional kill switch — omit or true to allow Live inference when a key is set:
+# LIVE_MODE=false
 DATABASE_URL=postgresql://...  # Neon / Supabase PGVector
 REDIS_URL=redis://...
 ```

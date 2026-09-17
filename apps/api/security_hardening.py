@@ -51,12 +51,14 @@ def debug_enabled() -> bool:
 
 
 def live_mode_enabled() -> bool:
-    """Live LLM path only when explicitly enabled AND at least one key is present."""
-    flag = os.getenv("LIVE_MODE", "").strip().lower() in {"1", "true", "yes", "on"}
-    if not flag:
-        return False
+    """Live LLM path when an LLM key is present, unless LIVE_MODE is explicitly off."""
     keys = ("GOOGLE_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY")
-    return any(bool(os.getenv(k)) for k in keys)
+    if not any(bool(os.getenv(k)) for k in keys):
+        return False
+    raw = os.getenv("LIVE_MODE")
+    if raw is None or raw.strip() == "":
+        return True
+    return raw.strip().lower() not in {"0", "false", "no", "off"}
 
 
 def public_run_token() -> str | None:

@@ -20,7 +20,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
-VERSION = "0.9.2"
+VERSION = "0.9.3"
 
 
 def _sse(payload: dict) -> str:
@@ -417,7 +417,7 @@ async def stream(
     _rl: None = Depends(rate_limit_invoke),
     _tok: None = Depends(require_run_token_if_configured),
 ):
-    # Default: demo/sim. Live graph only when LIVE_MODE + keys + graph + not force_demo.
+    # Demo/sim when no LLM key, LIVE_MODE=false, graph missing, or force_demo.
     if (not live_mode_enabled()) or (not graph) or req.force_demo:
         return StreamingResponse(_demo_event_gen(), media_type="text/event-stream")
     return StreamingResponse(

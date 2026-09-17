@@ -25,7 +25,7 @@ def test_health_ok():
     assert r.status_code == 200
     body = r.json()
     assert body["status"] == "ok"
-    assert body["version"] == "0.9.2"
+    assert body["version"] == "0.9.3"
     assert "llm_keys" in body
     assert set(body["llm_keys"]) >= {"google", "openai", "anthropic", "langsmith"}
 
@@ -108,6 +108,20 @@ def test_health_reports_live_mode_flag():
     r = client.get("/health")
     assert r.status_code == 200
     assert "live_mode" in r.json()
+    assert r.json()["live_mode"] is False
+
+
+def test_live_mode_on_when_key_present(monkeypatch):
+    monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
+    monkeypatch.delenv("LIVE_MODE", raising=False)
+    r = client.get("/health")
+    assert r.json()["live_mode"] is True
+
+
+def test_live_mode_off_when_explicitly_disabled(monkeypatch):
+    monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
+    monkeypatch.setenv("LIVE_MODE", "false")
+    r = client.get("/health")
     assert r.json()["live_mode"] is False
 
 

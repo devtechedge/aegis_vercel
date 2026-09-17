@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.9.3] - 2026-09-17
+
+### Changed
+- **Live inference** — Demo → Live is enabled whenever an LLM key is present. Set `LIVE_MODE=false` to force demo/sim. Restores the July public-demo toggle on production (Gemini key already configured).
+
+---
+
 ## [0.9.2] - 2026-09-17
 
 ### Fixed

@@ -39,7 +39,7 @@ Open [aegis-agent-api.vercel.app/ui](https://aegis-agent-api.vercel.app/ui) and 
 
 ![Light mode operations console](docs/screenshots/04-light-console.png)
 
-Public demo threat model: [SECURITY.md](SECURITY.md). Demo/sim is public by default; live LLM path requires `LIVE_MODE` (optional `PUBLIC_RUN_TOKEN`). Rate-limited. Not bank-grade.
+Public demo threat model: [SECURITY.md](SECURITY.md). Demo/sim is the UI default; Live inference unlocks when an LLM key is present (`LIVE_MODE=false` forces demo). Optional `PUBLIC_RUN_TOKEN`. Rate-limited. Not bank-grade.
 
 ---
 
