@@ -62,8 +62,6 @@ header.app-header{position:sticky;top:0;z-index:20;border-bottom:1px solid var(-
 .header-inner{max-width:1440px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px 24px;min-height:56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
 .brand{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
 .brand h1{margin:0;font-size:clamp(1.05rem,1rem + .4vw,1.25rem);font-weight:600;letter-spacing:-.02em;text-wrap:balance}
-.brand .sub{margin:0;font-size:12px;color:var(--fg-muted)}
-.ver{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-subtle);margin-left:8px}
 .mode-badge{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;border-radius:999px;box-shadow:var(--shadow-border)}
 .mode-real{color:var(--success)}.mode-demo{color:var(--warning)}.mode-off{color:var(--danger)}
 .pane-tabs{display:flex;gap:4px;max-width:1440px;margin:12px auto 0;padding:0 16px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
@@ -233,10 +231,7 @@ html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale
         <path d="M16 7.2l7.4 3.1v6.2c0 4.1-2.8 7.9-7.4 9.3-4.6-1.4-7.4-5.2-7.4-9.3v-6.2L16 7.2z" fill="none" stroke="var(--bg)" stroke-width="1.4"/>
         <text x="16" y="20.2" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="600" font-size="11" fill="var(--bg)">A</text>
       </svg>
-      <div>
-        <h1>AEGIS <span class="ver">v{{VERSION}}</span></h1>
-        <p class="sub">Operations cortex</p>
-      </div>
+      <h1>AEGIS</h1>
     </div>
     <span id="mode-badge" class="mode-badge mode-demo"><i class="mode-dot" data-on="demo" aria-hidden="true"></i><span>checking...</span></span>
     <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch to light mode" title="Light mode">

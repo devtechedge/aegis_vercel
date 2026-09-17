@@ -25,7 +25,7 @@ def test_health_ok():
     assert r.status_code == 200
     body = r.json()
     assert body["status"] == "ok"
-    assert body["version"] == "0.9.5"
+    assert body["version"] == "0.9.6"
     assert "llm_keys" in body
     assert set(body["llm_keys"]) >= {"google", "openai", "anthropic", "langsmith"}
 
@@ -43,6 +43,8 @@ def test_ui_serves_branded_dashboard():
     assert r.status_code == 200
     html = r.text
     assert "AEGIS" in html
+    assert "Operations cortex" not in html
+    assert "class=\"ver\"" not in html
     assert "rel=\"icon\"" in html
     assert "Run AEGIS" in html
     assert "Live LangGraph Visualizer" in html

@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.9.6] - 2026-09-17
+
+### Changed
+- **Header** — drop the version stamp and “Operations cortex” subtitle next to the AEGIS mark. Wordmark only.
+
 ## [0.9.5] - 2026-09-17
 
 ### Changed
