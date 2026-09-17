@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.9.2] - 2026-09-17
+
+### Fixed
+- **Visualizer rail** — production `/ui` still laid the LangGraph column out as a row, so the title, Idle/Live/Done legend, specialist roster, path, and LangSmith link painted on top of each other. The rail is now a column (`flex-direction: column !important`) with independent scroll.
+- **Hub graph** — the circular SVG hub was wider than the rail and clipped Communicator. Specialists now sit in a two-column pill grid that shrinks with the panel, with labels that ellipsize instead of overflowing.
+
+---
+
+## [0.9.1] - 2026-09-17
+
+### Fixed
+- **Visualizer rail** — at desktop widths the LangGraph panel was `display: flex` in a row, which collapsed the hub and stacked the title, Idle/Live/Done legend, specialist roster, and LangSmith copy on top of each other. The rail is now a column with independent scroll, wrapping guards, and a grid roster.
+
+---
+
 ## [0.9.0] - 2026-09-17
 
 ### Changed

@@ -1,4 +1,4 @@
-# Vercel Deploy Notes - AEGIS v0.9.0
+# Vercel Deploy Notes - AEGIS v0.9.2
 
 Live: https://aegis-agent-api.vercel.app/ui
 

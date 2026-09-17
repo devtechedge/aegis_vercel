@@ -25,7 +25,7 @@ def test_health_ok():
     assert r.status_code == 200
     body = r.json()
     assert body["status"] == "ok"
-    assert body["version"] == "0.9.0"
+    assert body["version"] == "0.9.2"
     assert "llm_keys" in body
     assert set(body["llm_keys"]) >= {"google", "openai", "anthropic", "langsmith"}
 
@@ -62,6 +62,10 @@ def test_ui_serves_branded_dashboard():
     assert "out-empty" in html
     assert 'id="roster"' in html
     assert "Specialists" in html
+    assert "side-head" in html
+    assert "flex-direction:column" in html
+    assert "minmax(380px" in html
+    assert "graph-fan" in html
 
 
 def test_demo_stream_emits_hitl_and_done():
