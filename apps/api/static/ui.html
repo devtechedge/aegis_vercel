@@ -70,7 +70,7 @@ header.app-header{position:sticky;top:0;z-index:20;border-bottom:1px solid var(-
 .pane-tabs button{flex:1;min-height:44px;border:0;background:transparent;color:var(--fg-muted);font:inherit;font-size:14px;font-weight:500;border-radius:var(--radius-sm)}
 .pane-tabs button[aria-pressed="true"]{background:var(--bg-elevated);color:var(--fg);box-shadow:var(--shadow-border)}
 @media(min-width:960px){.pane-tabs{display:none}}
-main.shell{max-width:1440px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr;gap:16px;padding:16px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));padding-bottom:max(24px,env(safe-area-inset-bottom));flex:1}
+main.shell{max-width:1440px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr;gap:16px;padding:16px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));padding-bottom:max(24px,env(safe-area-inset-bottom));flex:1;overflow-x:hidden;min-width:0}
 @media(min-width:960px){main.shell{grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);align-items:stretch;gap:16px;padding:16px 24px;overflow:hidden}}
 .panel{background:var(--bg-elevated);border-radius:var(--radius-xl);padding:16px;box-shadow:var(--shadow-border)}
 @media(min-width:640px){.panel{padding:20px}}
@@ -132,9 +132,9 @@ button:active:not(:disabled){transform:scale(.96)}
 .hitl-box .hint{color:var(--fg-muted);font-weight:400}
 .hitl-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}
 h2,h3{margin:0 0 16px;font-size:16px;font-weight:500;letter-spacing:-.01em}
-#graph{min-height:280px;background:var(--bg-subtle);border-radius:var(--radius-md);padding:12px 8px;box-shadow:var(--shadow-border);overflow:visible}
+#graph{min-height:280px;background:var(--bg-subtle);border-radius:var(--radius-md);padding:12px 8px;box-shadow:var(--shadow-border);overflow:hidden;min-width:0;max-width:100%}
 #graph.active{box-shadow:var(--shadow-border-hover)}
-#graph-hub{width:100%;height:auto;max-height:min(56vh,440px);overflow:visible;display:block}
+#graph-hub{width:100%;max-width:100%;height:auto;max-height:min(52vh,400px);overflow:hidden;display:block}
 .graph-edge{stroke:var(--border-strong);stroke-width:1.25;fill:none}
 .graph-edge[data-on="active"]{stroke:var(--accent);stroke-width:1.75}
 .graph-edge[data-on="done"]{stroke:color-mix(in oklab,var(--success) 55%,var(--border))}
@@ -285,7 +285,7 @@ html[data-theme="light"] button.theme-toggle .icon-sun{opacity:0;transform:scale
   <aside class="panel side">
     <h3>Live LangGraph Visualizer</h3>
     <div id="graph">
-      <svg id="graph-hub" viewBox="0 0 440 400" role="img" aria-label="LangGraph execution path" overflow="visible">
+      <svg id="graph-hub" viewBox="-16 0 472 400" role="img" aria-label="LangGraph execution path">
         <title>LangGraph supervisor routing specialists</title>
         <circle cx="220" cy="176" r="118" fill="none" stroke="currentColor" stroke-opacity=".06"/>
         <circle cx="220" cy="176" r="78" fill="none" stroke="currentColor" stroke-opacity=".05"/>
