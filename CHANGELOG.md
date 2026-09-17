@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.9.0] - 2026-09-17
+
+### Changed
+- **Operations console** - IBM Plex typography, cooler titanium canvas, specialist transcript cards, and a radar-backed LangGraph hub. Same `/stream` and `/threads/{id}/resume/stream` contracts, theme toggle, overlay scrollbars, and HITL gate.
+
+---
+
 ## [0.8.0] - 2026-09-17
 
 ### Changed
